@@ -120,6 +120,9 @@ struct Linea {
     }
 };
 
+// Rectas: r, s
+// Segmentos: s, t
+
 // Saber si un punto p esta en la recta r
 bool PuntoEnRecta(const Punto& p, const Linea& r) {
     return Igual(r.a*p.x + r.b*p.y + r.c, 0);
@@ -165,7 +168,7 @@ bool InterseccionSegmentos(const Linea& s, const Linea& t) {
     if (ManoDerecha(s.p, s.q, t.p) ==
         ManoDerecha(s.p, s.q, t.q)) return false;
     if (ManoDerecha(t.p, t.q, s.p) ==
-        ManoDerecha(t.p, t.q, s.p)) return false;
+        ManoDerecha(t.p, t.q, s.q)) return false;
     return true;
 }
 
@@ -228,14 +231,29 @@ bool PuntoEnConvexo(const Punto& p, const Poligono& P) {
     return true;
 }
 
-// Saber si un punto esta dentro de un poligono concavo
-bool PuntoEnConcavo(const Punto& p, const Poligono& P) {
-    double angulo=0;
-    int tam=P.size()-1;
-    for(int i=0;i<tam;i++)
-        angulo+=Angulo(Trasladar(p,P[i]),Trasladar(p,P[i+1]))*ManoDerecha(p,P[i],P[i+1]);
-    return (angulo>180)?true:false;
+// Punto en poligono concavo por ray casting
+bool RayCasting(const Punto& p, const Poligono& P) {
+    if (PuntoEnPerimetro(p, P)) return true;
+    Punto o = *min_element(P.begin(), P.end());
+    Linea rayo(p, Punto(o.x - M_PI, o.y - M_E));
+
+    int cruces = 0;
+    for (int i = 1; i < P.size(); ++i)
+        if (InterseccionSegmentos(rayo,
+            Linea(P[i - 1], P[i]))) ++cruces;
+    return cruces & 1;
+}
+
+// Punto en poligono concavo por angle summation
+bool AngleSummation(const Punto& p, const Poligono& P) {
+    if (PuntoEnPerimetro(p, P)) return true;
+    double angulo = 0;
+    for (int i = 1; i < P.size(); ++i)
+        angulo += ManoDerecha(p, P[i - 1],P[i]) *
+            Angulo(Trasladar(p, P[i - 1]), Trasladar(p, P[i]));
+    return (angulo > 180)? true: false;
 }
 
 int main() {
+    return 0;
 }

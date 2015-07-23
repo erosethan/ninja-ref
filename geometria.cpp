@@ -148,8 +148,51 @@ bool Parelelas(const Linea& l1,const Linea& l2){
 bool lineasiguales(const Linea& l1, const Linea&l2){
 	return (Igual(l1.a/l1.b,l2.a/l2.b)&&Igual(l1.c/l1.b,l2.c/l2.b));
 }
-bool lineaperpendicular(){}
-bool lineaperpendicularEnpunto(){}
+bool lineaperpendicular(const Linea& l1,const Linea& l2){
+	return (l1.a==l2.b&&l1.b==l2.a)?1:0;
+}
+Linea LineaPerpendicularEnpunto(const Linea& l, const Punto& p){
+	return Linea(p,Punto(p.x+l.a,p.y+l.b));
+}
+Punto PuntoInterseccion(const Linea&l1,const Linea&l2){
+	if(!Paralelas(l1,l2)){
+		if(l1.a){
+			double y=(l2.a*l1.c-l1.a*l2.c)/((double)l2.b*l1.a-l2.a*l1.b);
+			double x=(l1.c+l1.b*y)/(-l1.a);
+			return Punto(x,y);
+		}
+		double y=-l1.c;
+		return Punto(((y*l2.b-l2.c)/l2.a),y);
+	}
+	return Punto();
+}
+bool InterseccionSegmentos(const Linea&s,const Linea&t){
+	if(ManoDerecha(s.p,s.q,t.p)==ManoDerecha(s.p,s.q,t.q))return false;
+	if(ManoDerecha(t.p,t.q,s.p)==ManoDerecha(t.p,t.q,s.p))return false;
+	return true;
+}
+Linea ParalelaEnPunto(const Linea& l1,const Punto& p){
+	return Linea(p,Punto(p.x-l1.b,p.y+l1.a));
+}
+Punto ProyeccionenRecta(const Linea& l1, const Punto& p){
+	Punto A=Trasladar(l1.p,l1.q);
+	Punto B=Trasladar(l1.p,p);
+	return Trasladar(Opuesto(l1.p),Escalar(B,Dot(B,A)/pow(Magnitud(B),2)));
+}
+double DistanciaPuntoRecta(const Linea& l1, const Punto& p){
+	Punto A=ProyeccionenRecta(l1,p);
+	return Distancia(A,p);
+}
+double DistanciaPuntoSegmento(const Linea& l1, const Punto& p){
+	Punto A=ProyeccionenRecta(l1,p);
+	if(A<l1.p){return Distancia(l1.p,p);}
+	if(l1.q<A){return Distancia(l1.q,p);}
+	return Distancia(A,p);
+}
+double DistanciaRectaRecta(const Linea& l1,const Linea& l2){
+	if(!Paralelas(l1,l2))return 0;
+	return DistanciaPuntoRecta(l1,l2.p);
+}
 
 int main(){
 	Linea a(Punto(-2,1),Punto(2,3));

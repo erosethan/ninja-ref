@@ -90,7 +90,7 @@ double Angulo(const Punto& v, const Punto& w) {
 
 // Test de mano derecha: CCW = 1, CW = -1, Colineal = 0
 int ManoDerecha(const Punto& o, const Punto& p, const Punto& q) {
-    double ccw = Cruz(Trasladar(o, v), Trasladar(o, w));
+    double ccw = Cruz(Trasladar(o, p), Trasladar(o, q));
     return Igual(ccw, 0)? 0: (ccw < 0)? -1: 1;
 }
 
@@ -127,7 +127,7 @@ bool PuntoEnRecta(const Punto& p, const Linea& r) {
 
 // Saber si un punto o esta en el segmento s
 bool PuntoEnSegmento(const Punto& p, const Linea& s) {
-    return PuntoEnRecta(s,p) && !(p < s.p || s.q < p);
+    return PuntoEnRecta(p, s) && !(p < s.p || s.q < p);
 }
 
 // Saber si dos lineas son paralelas
@@ -155,44 +155,52 @@ Linea PerpendicularEnPunto(const Linea& l, const Punto& p) {
     return Linea(p, Punto(p.x + l.a, p.y + l.b));
 }
 
-Punto PuntoInterseccion(const Linea&l1,const Linea&l2){
-    if(!Paralelas(l1,l2)){
-        if(l1.a){
-            double y=(l2.a*l1.c-l1.a*l2.c)/((double)l2.b*l1.a-l2.a*l1.b);
-            double x=(l1.c+l1.b*y)/(-l1.a);
-            return Punto(x,y);
-        }
-        double y=-l1.c;
-        return Punto(((y*l2.b-l2.c)/l2.a),y);
-    }
-    return Punto();
+// Saber si dos rectas r y s se intersectan
+bool InterseccionRectas(const Linea& r, const Linea& s) {
+    return !LineasParalelas(r, s);
 }
-bool InterseccionSegmentos(const Linea&s,const Linea&t){
-    if(ManoDerecha(s.p,s.q,t.p)==ManoDerecha(s.p,s.q,t.q))return false;
-    if(ManoDerecha(t.p,t.q,s.p)==ManoDerecha(t.p,t.q,s.p))return false;
+
+// Saber si dos segmentos s y t se intersectan
+bool InterseccionSegmentos(const Linea& s, const Linea& t) {
+    if (ManoDerecha(s.p, s.q, t.p) ==
+        ManoDerecha(s.p, s.q, t.q)) return false;
+    if (ManoDerecha(t.p, t.q, s.p) ==
+        ManoDerecha(t.p, t.q, s.p)) return false;
     return true;
 }
-Linea ParalelaEnPunto(const Linea& l1,const Punto& p){
-    return Linea(p,Punto(p.x-l1.b,p.y+l1.a));
+
+// Obtener punto de interseccion entre lineas l y m
+Punto PuntoInterseccion(const Linea& l, const Linea& m) {
+    if (LineasParalelas(l, m)) return Punto();
+    if (!l.a) return Punto((double)(-l.c*m.b - m.c) / m.a, -l.c);
+    double y = (double)(m.a*l.c - l.a*m.c) / (m.b*l.a - m.a*l.b);
+    double x = (double)(l.c + l.b * y) / -l.a;
+    return Punto(x, y);
 }
-Punto ProyeccionenRecta(const Linea& l1, const Punto& p){
-    Punto A=Trasladar(l1.p,l1.q);
-    Punto B=Trasladar(l1.p,p);
-    return Trasladar(Opuesto(l1.p),Escalar(B,Dot(B,A)/pow(Magnitud(B),2)));
+
+// Obtener proyeccion del punto p en la recta r
+Punto ProyeccionEnRecta(const Linea& r, const Punto& p) {
+    Punto a = Trasladar(r.p, p), b = Trasladar(r.p, r.q);
+    return Trasladar(Opuesto(r.p), Escalar(
+        b, Dot(a, b) / pow(Magnitud(b), 2)));
 }
-double DistanciaPuntoRecta(const Linea& l1, const Punto& p){
-    Punto A=ProyeccionenRecta(l1,p);
-    return Distancia(A,p);
+
+// Distancia entre un punto p y una recta r
+double DistanciaPuntoRecta(const Punto& p, const Linea& r) {
+    return Distancia(ProyeccionEnRecta(r, p), p);
 }
-double DistanciaPuntoSegmento(const Linea& l1, const Punto& p){
-    Punto A=ProyeccionenRecta(l1,p);
-    if(A<l1.p){return Distancia(l1.p,p);}
-    if(l1.q<A){return Distancia(l1.q,p);}
-    return Distancia(A,p);
+
+// Distancia entre un punto p y un segmento s
+double DistanciaPuntoSegmento(const Punto& p, const Linea& s) {
+    Punto proy = ProyeccionEnRecta(s, p);
+    if (proy < s.p) return Distancia(s.p, p);
+    if (s.q < proy) return Distancia(s.q, p);
+    return Distancia(proy, p);
 }
-double DistanciaRectaRecta(const Linea& l1,const Linea& l2){
-    if(!Paralelas(l1,l2))return 0;
-    return DistanciaPuntoRecta(l1,l2.p);
+
+// Distancia entre dos lineas l y m
+double DistanciaRectaRecta(const Linea& l, const Linea& m) {
+    return LineasParalelas(l, m)? DistanciaPuntoRecta(l.p, m): 0;
 }
 
 // Un poligono es una serie de
@@ -200,30 +208,28 @@ double DistanciaRectaRecta(const Linea& l1,const Linea& l2){
 // P = p1, p2, p3, ..., pn, p1
 typedef vector<Punto> Poligono;
 
-bool PuntoEnPerimetro(const Poligono& P,const Punto& p){
-    int tam=P.size();
-    for(int i=1;i<tam;i++){
-        Punto p1=P[i-1],p2=P[i];
-        if(p2<p1)swap(p1,p2);
-        if(!ManoDerecha(p1,p2,p)&&!(p<p1||p2<p))return true;
-        return false;
+// Saber si un punto esta en el perimetro de un poligono
+bool PuntoEnPerimetro(const Punto& p, const Poligono& P) {
+    for (int i = 1; i < P.size(); ++i) {
+        Punto l = P[i - 1], r = P[i];
+        if (r < l) swap(l, r);
+        if (!ManoDerecha(l, r, p) &&
+            !(p < l || r < p)) return true;
     }
-    /*mayor costo gcd en linea
-    for(int i=1;i<tam;i++)
-        if(PuntoEnSegmento(p,Linea(P[i-1],P[i])))return true;
-    return false;*/
+    return false;
 }
 
-bool PuntoEnConvexo(const Poligono& P,const Punto& a){
-    int dir=ManoDerecha(P[0],P[1],a);
-    int tam=P.size()-1;
-    for(int i=1;i<tam;i++)
-        if((abs(ManoDerecha(P[i],P[i+1],a))-dir)==2)
-            return false;
+// Saber si un punto esta dentro de un poligono convexo
+bool PuntoEnConvexo(const Punto& p, const Poligono& P) {
+    int dir = ManoDerecha(P[0], P[1], p);
+    for (int i = 2; i < P.size(); ++i)
+        if (2 == abs(dir - ManoDerecha(
+            P[i - 1], P[i], p))) return false;
     return true;
 }
 
-bool PuntoEnConcavo(const Poligono& P,const Punto& p){
+// Saber si un punto esta dentro de un poligono concavo
+bool PuntoEnConcavo(const Punto& p, const Poligono& P) {
     double angulo=0;
     int tam=P.size()-1;
     for(int i=0;i<tam;i++)
@@ -231,10 +237,5 @@ bool PuntoEnConcavo(const Poligono& P,const Punto& p){
     return (angulo>180)?true:false;
 }
 
-int main(){
-    Linea a(Punto(-2,1),Punto(2,3));
-    cout<<a.a<<' '<<a.b<<' '<<a.c<<endl;
-    Linea b(Punto(-2,-1),Punto(2,1));
-    cout<<b.a<<' '<<b.b<<' '<<b.c<<endl;
-    cout<<Parelelas(a,b)<<endl;
+int main() {
 }

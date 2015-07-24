@@ -114,8 +114,14 @@ struct Linea {
         else {
             c = abs(__gcd(a, b));
             a /= c, b /= c;
-            c = Cruz(q, p);
+            c = -a*p.x - b*p.y;
         }
+    }
+
+    bool operator<(const Linea& cmp) const {
+        if (a != cmp.a) return a < cmp.a;
+        if (b != cmp.b) return b < cmp.b;
+        return c < cmp.c;
     }
 };
 
@@ -224,6 +230,7 @@ bool PuntoEnPerimetro(const Punto& p, const Poligono& P) {
 
 // Saber si un punto esta dentro de un poligono convexo
 bool PuntoEnConvexo(const Punto& p, const Poligono& P) {
+    if (PuntoEnPerimetro(p, P)) return true;
     int dir = ManoDerecha(P[0], P[1], p);
     for (int i = 2; i < P.size(); ++i)
         if (2 == abs(dir - ManoDerecha(
@@ -250,8 +257,55 @@ bool AngleSummation(const Punto& p, const Poligono& P) {
     for (int i = 1; i < P.size(); ++i)
         angulo += ManoDerecha(p, P[i - 1],P[i]) *
             Angulo(Trasladar(p, P[i - 1]), Trasladar(p, P[i]));
-    return (angulo > 180)? true: false;
+    return (fabs(angulo) > 180)? true: false;
 }
+
+// Area de un poligono
+double Area(const Poligono& P) {
+    double area = 0;
+    for (int i = 1; i < P.size(); ++i)
+        area += Cruz(P[i - 1], P[i]);
+    return fabs(area) / 2.0;
+}
+//perimetro de un poligo
+Double Perimetro(const Poligono& P) {
+    double perimetro = 0;
+    for (int i = 1; i < P.size(); ++i)
+        perimetro += Distancia(P[i - 1], P[i]);
+    return perimetro;
+}
+
+
+// Cerco convexo de un conjunto de puntos
+Poligono CercoConvexo(const vector<Punto>& P){
+    // sort(P.begin(), P.end());
+    Poligono arriba;
+    for (int i = 0; i < P.size(); ++i) {
+        while (arriba.size() > 1) {
+            int p = arriba.size() - 1;
+            // Permitir colineales: <=
+            if (ManoDerecha(arriba[p - 1],
+                arriba[p], P[i]) < 0) break;
+            arriba.pop_back();
+        }
+        arriba.push_back(P[i]);
+    }
+    Poligono abajo;
+    for (int i = P.size() - 1; i >= 0; --i) {
+        while (abajo.size() > 1) {
+            int p = abajo.size() - 1;
+            // Permitir colineales: <=
+            if(ManoDerecha(abajo[p - 1],
+                abajo[p], P[i]) < 0) break;
+            abajo.pop_back();
+        }
+        abajo.push_back(P[i]);
+    }
+    arriba.pop_back();
+    return arriba.push_back(
+        abajo.begin(), abajo.end());
+}
+
 
 int main() {
     return 0;

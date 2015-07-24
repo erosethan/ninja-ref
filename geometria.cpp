@@ -109,11 +109,10 @@ struct Linea {
         if (q < p) swap(p, q);
         a = q.y - p.y;
         b = p.x - q.x;
-        if (!a) c = -p.y, b = 1;
-        else if (!b) c = -p.x, a = 1;
+        if (!a) c = p.y, b = -1;
+        else if (!b) c = p.x, a = -1;
         else {
             c = abs(__gcd(a, b));
-            if (a < 0) c = -c;
             a /= c, b /= c;
             c = Cruz(q, p);
         }
@@ -145,7 +144,8 @@ bool LineasIguales(const Linea& l, const Linea& m) {
 
 // Saber si dos lineas son perpendiculares
 bool LineasPerpendiculares(const Linea& l, const Linea& m) {
-    return l.a == m.b && l.b == m.a;
+    return (l.a == m.b && l.b == -m.a) ||
+           (m.a == l.b && m.b == -l.a);
 }
 
 // Obtener una linea paralela a l que pase por p
@@ -182,7 +182,7 @@ Punto PuntoInterseccion(const Linea& l, const Linea& m) {
 }
 
 // Obtener proyeccion del punto p en la recta r
-Punto ProyeccionEnRecta(const Linea& r, const Punto& p) {
+Punto ProyeccionEnRecta(const Punto& p, const Linea& r) {
     Punto a = Trasladar(r.p, p), b = Trasladar(r.p, r.q);
     return Trasladar(Opuesto(r.p), Escalar(
         b, Dot(a, b) / pow(Magnitud(b), 2)));
@@ -190,12 +190,12 @@ Punto ProyeccionEnRecta(const Linea& r, const Punto& p) {
 
 // Distancia entre un punto p y una recta r
 double DistanciaPuntoRecta(const Punto& p, const Linea& r) {
-    return Distancia(ProyeccionEnRecta(r, p), p);
+    return Distancia(ProyeccionEnRecta(p, r), p);
 }
 
 // Distancia entre un punto p y un segmento s
 double DistanciaPuntoSegmento(const Punto& p, const Linea& s) {
-    Punto proy = ProyeccionEnRecta(s, p);
+    Punto proy = ProyeccionEnRecta(p, s);
     if (proy < s.p) return Distancia(s.p, p);
     if (s.q < proy) return Distancia(s.q, p);
     return Distancia(proy, p);
@@ -236,7 +236,6 @@ bool RayCasting(const Punto& p, const Poligono& P) {
     if (PuntoEnPerimetro(p, P)) return true;
     Punto o = *min_element(P.begin(), P.end());
     Linea rayo(p, Punto(o.x - M_PI, o.y - M_E));
-
     int cruces = 0;
     for (int i = 1; i < P.size(); ++i)
         if (InterseccionSegmentos(rayo,

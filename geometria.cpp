@@ -169,6 +169,12 @@ bool InterseccionRectas(const Linea& r, const Linea& s) {
     return !LineasParalelas(r, s);
 }
 
+// Saber si una recta r y un segmento s se intersectan
+bool IntersecRectaSegmen(const Linea& r, const Linea& s) {
+    return ManoDerecha(r.p, r.q, s.p) !=
+           ManoDerecha(r.p, r.q, s.q);
+}
+
 // Saber si dos segmentos s y t se intersectan
 bool InterseccionSegmentos(const Linea& s, const Linea& t) {
     if (ManoDerecha(s.p, s.q, t.p) ==
@@ -233,8 +239,8 @@ bool PuntoEnConvexo(const Punto& p, const Poligono& P) {
     if (PuntoEnPerimetro(p, P)) return true;
     int dir = ManoDerecha(P[0], P[1], p);
     for (int i = 2; i < P.size(); ++i)
-        if (2 == abs(dir - ManoDerecha(
-            P[i - 1], P[i], p))) return false;
+        if (dir != ManoDerecha(P[i - 1], P[i], p))
+            return false;
     return true;
 }
 
@@ -267,19 +273,19 @@ double Area(const Poligono& P) {
         area += Cruz(P[i - 1], P[i]);
     return fabs(area) / 2.0;
 }
-//perimetro de un poligo
-Double Perimetro(const Poligono& P) {
+
+// Perimetro de un poligono
+double Perimetro(const Poligono& P) {
     double perimetro = 0;
     for (int i = 1; i < P.size(); ++i)
         perimetro += Distancia(P[i - 1], P[i]);
     return perimetro;
 }
 
-
 // Cerco convexo de un conjunto de puntos
-Poligono CercoConvexo(const vector<Punto>& P){
+Poligono CercoConvexo(vector<Punto> P){
     // sort(P.begin(), P.end());
-    Poligono arriba;
+    Poligono arriba, abajo;
     for (int i = 0; i < P.size(); ++i) {
         while (arriba.size() > 1) {
             int p = arriba.size() - 1;
@@ -290,7 +296,7 @@ Poligono CercoConvexo(const vector<Punto>& P){
         }
         arriba.push_back(P[i]);
     }
-    Poligono abajo;
+    arriba.pop_back();
     for (int i = P.size() - 1; i >= 0; --i) {
         while (abajo.size() > 1) {
             int p = abajo.size() - 1;
@@ -301,11 +307,10 @@ Poligono CercoConvexo(const vector<Punto>& P){
         }
         abajo.push_back(P[i]);
     }
-    arriba.pop_back();
-    return arriba.push_back(
+    arriba.insert(arriba.end(),
         abajo.begin(), abajo.end());
+    return arriba;
 }
-
 
 int main() {
     return 0;

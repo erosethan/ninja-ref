@@ -317,11 +317,12 @@ Poligono CercoConvexo(vector<Punto> P){
 }
 
 Punto Centroide(const Poligono& P) {
-    double k = 6 * Area(P), x = 0, y = 0;
+    double x = 0, y = 0, k = 0;
     for (int i = 1; i < P.size(); ++i) {
         double cruz = Cruz(P[i - 1], P[i]);
         x += cruz * (P[i - 1].x + P[i].x);
         y += cruz * (P[i - 1].y + P[i].y);
+        k += cruz * 3;
     }
     return Punto(x / k, y / k);
 }

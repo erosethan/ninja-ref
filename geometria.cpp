@@ -191,7 +191,7 @@ bool InterseccionSegmentos(const Linea& s, const Linea& t) {
 // Obtener punto de interseccion entre lineas l y m
 Punto PuntoInterseccion(const Linea& l, const Linea& m) {
     if (LineasParalelas(l, m)) return Punto();
-    if (!l.a) return Punto((double)(-l.c*m.b - m.c) / m.a, -l.c);
+    if (!l.a) return Punto((double)(l.c*m.b + m.c) / -m.a, l.c);
     double y = (double)(m.a*l.c - l.a*m.c) / (m.b*l.a - m.a*l.b);
     double x = (double)(l.c + l.b * y) / -l.a;
     return Punto(x, y);
@@ -288,7 +288,8 @@ double Perimetro(const Poligono& P) {
 
 // Cerco convexo de un conjunto de puntos
 Poligono CercoConvexo(vector<Punto> P){
-    // sort(P.begin(), P.end());
+    // Si P ya esta ordenado no usar sort
+    sort(P.begin(), P.end());
     Poligono arriba, abajo;
     for (int i = 0; i < P.size(); ++i) {
         while (arriba.size() > 1) {
@@ -327,25 +328,38 @@ Punto Centroide(const Poligono& P) {
     return Punto(x / k, y / k);
 }
 
-pair< Poligono, Poligono > Corte (const Poligono& P,const Linea& r ) {
-    Poligono Ps[2];
-    int ind=0;
+bool RectaCortaPoligono( const Linea& r, const Poligono& P) {
+    int dif = 0;
+    for(int i = 0; i < P.size(); ++i) {
+        int a = ManoDerecha(l.p, l.q, P[i] );
+        if(dif == 0) dif = a;
+        if(a != dif && a && dif)
+            return true;
+    }
+    return false;
+}
+
+vector<Poligono> CortarPoligono(
+    const Poligono& P, const Linea& r) {
+    if (!RectaCortaPoligono(r, P))
+        return vector<Poligono>(1, P);
+    int ind = 0;
+    vector<Poligono> Ps(2);
     for (int i = 1; i < P.size(); ++i) {
-        Linea s(P[i-1],P[i]);
-        if(IntersecRectaSegmen(r,s)){
-            Punto p=PuntoInterseccion(r,s);
-            Ps[ind].push_back(P[i-1]);
-            if(P[i-1] == p)continue;
+        Linea s(P[i - 1], P[i]);
+        if (IntersecRectaSegmen(r, s)) {
+            Punto p = PuntoInterseccion(r, s);
+            if (P[i - 1] == p) continue;
+            Ps[ind].push_back(P[i - 1]);
+            Ps[1 - ind].push_back(p);
             Ps[ind].push_back(p);
-            ind=1-ind;
-            Ps[ind].push_back(p);
+            ind = 1 - ind;
         }
-        else
-            Ps[ind].push_back(P[i-1]);
+        else Ps[ind].push_back(P[i - 1]);
     }
     Ps[0].push_back(Ps[0][0]);
     Ps[1].push_back(Ps[1][0]);
-    return make_pair(Ps[0],Ps[1]);
+    return Ps;
 }
 
 

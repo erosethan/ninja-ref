@@ -24,6 +24,10 @@ struct Punto {
             return y < cmp.y;
         return x < cmp.x;
     }
+    //Igualdad de puntos 
+    bool operator==(const Punto& cmp) const {
+        return Igual(x, cmp.x) && Igual(y, cmp.y);
+    } 
 };
 
 // Puntos: p, q

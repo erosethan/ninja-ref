@@ -312,6 +312,38 @@ Poligono CercoConvexo(vector<Punto> P){
     return arriba;
 }
 
+Punto Centroide(const Poligono& P) {
+    double k = 6 * Area(P), x = 0, y = 0;
+    for (int i = 1; i < P.size(); ++i) {
+        double cruz = Cruz(P[i - 1], P[i]);
+        x += cruz * (P[i - 1].x + P[i].x);
+        y += cruz * (P[i - 1].y + P[i].y);
+    }
+    return Punto(x / k, y / k);
+}
+
+pair< Poligono, Poligono > Corte (const Poligono& P,const Linea& r ) {
+    Poligono Ps[2];
+    int ind=0;
+    for (int i = 1; i < P.size(); ++i) {
+        Linea s(P[i-1],P[i]);
+        if(IntersecRectaSegmen(r,s)){
+            Punto p=PuntoInterseccion(r,s);
+            Ps[ind].push_back(P[i-1]);
+            if(P[i-1] == p)continue;
+            Ps[ind].push_back(p);
+            ind=1-ind;
+            Ps[ind].push_back(p);
+        }
+        else
+            Ps[ind].push_back(P[i-1]);
+    }
+    Ps[0].push_back(Ps[0][0]);
+    Ps[1].push_back(Ps[1][0]);
+    return make_pair(Ps[0],Ps[1]);
+}
+
+
 int main() {
     return 0;
 }

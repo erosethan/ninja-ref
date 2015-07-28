@@ -378,6 +378,92 @@ vector<Poligono> CortarPoligono(
     return Ps;
 }
 
+//Circulo
+
+struct Circulo {
+    Punto c;
+    Coord r;
+    Circulo():c(),r(0){}
+    Circulo(const Punto& c_, Coord r_)
+        :c(c_),r(r_){}
+    bool operator<(const Circulo& cmp) const {
+        if(!(c == cmp.c))return c < cmp.c;
+        return Igual(r, cmp.r) ? false: r < cmp.r;
+    }
+};
+
+double Area(const Circulo& C) {
+    return pow(C.r, 2) * M_PI;
+}
+
+double Circuferencia(const Circulo& C) {
+    return C.r * M_PI * 2;
+}
+
+bool PuntoEnCirculo(const Punto& P, const Circulo& C) {
+    return !(Distancia(P,C.c) > C.r );
+}
+
+bool PuntoEnCircunferencia(const Punto& P, const Circulo& C) {
+    return Igual(Distancia(P, C.c), C.r);
+} 
+
+double DistanciaPuntoCirculo(const Punto& P, const Circulo& C) {
+    double dist = Distancia(P,C.c) - C.r;
+    return (dist < 0) ? 0 : dist;
+}
+
+Punto ProyPuntoCircunferencia(const Punto& P, const Circulo& C) {
+    Punto v = Trasladar(P,C.c);
+    double prop = DistanciaPuntoCirculo(P,C)/Magnitud(v);
+    return Trasladar(Opuesto(P), Escalar (v, prop));    
+}
+
+Linea ProyTangente(const Punto& P, const Circulo& C) {
+    double d = Distancia(P, C.c);
+    double x = sqrt(d * d - C.r * C.r);
+    double a = asin( x / d );
+    Punto p_ = Trasladar(C.c,ProyPuntoCircunferencia(P,C));
+    Linea seg(Trasladar(Opuesto(C.c), Rotar(p_, a)), 
+        Trasladar(Opuesto(C.c), Rotar(p_,PI2-a)));
+    return seg;
+}
+
+double DistanciaPuntoCirculo(const Circulo& C, const Linea& r) {
+    double dist = DistanciaPuntoRecta(C.c, r) - C.r;
+    return (dist < 0)?0:dist;
+}
+
+//-1 cuerda, 0 tangente, 1 no toca
+int IntersecCirculoRecta(const Circulo& C, const Linea& r) {
+    double d = DistanciaPuntoRecta(C.c, r);
+    if(Igual(d, C.r))return 0;
+    return (d < C.r)? -1 : 1;
+}
+
+Punto Chicharron(double a, double b, double c) {
+    double sq=sqrt(b*b - 4 * a * c);
+    return Punto((-b+sq)/(2*a), (-b-sq)/(2*a));
+}
+
+Linea CuerdaInterseccion(const Linea& r, const Circulo& C) {
+    if(IntersecCirculoRecta(C,r)==1)return Linea();
+    Punto xs,ys;
+    if(! Igual(r.b, 0)) {
+        Linea R=Linea(Trasladar(C.c,r.p),Trasladar(C.c,r.q));
+        xs = Chicharron( R.a * R.a + R.b * R.b , 2 * R.a * R.c , R.c * R.c - R.b * R.b * C.r * C.r);
+        ys = Punto((R.c + R.a * xs.x) / -R.b, (R.c + R.a * xs.y) / -R.b);
+        xs = Trasladar(Opuesto(C.c), xs);
+        ys = Trasladar(Opuesto(C.c), ys);
+    }
+    else {
+        xs = Punto(r.p.x,r.p.x);
+        double sq = sqrt(C.r * C.r - pow(r.p.x - C.c.y, 2));
+        ys = Punto(C.c.x + sq, C.c.x - sq);
+    }
+    return Linea(Punto(xs.x, ys.x),Punto(xs.y, ys.y));
+}
+
 int main() {
     return 0;
 }

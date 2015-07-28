@@ -20,11 +20,10 @@ struct Punto {
 
     // Izquierda a derecha, abajo a arriba
     bool operator<(const Punto& cmp) const {
-        if (Igual(x, cmp.x))
-            return y < cmp.y;
-        return x < cmp.x;
+        if (!Igual(x, cmp.x)) return x < cmp.x;
+        return Igual(y, cmp.y)? false: y < cmp.y;
     }
-    //Igualdad de puntos 
+ 
     bool operator==(const Punto& cmp) const {
         return Igual(x, cmp.x) && Igual(y, cmp.y);
     } 
@@ -99,9 +98,13 @@ int ManoDerecha(const Punto& o, const Punto& p, const Punto& q) {
 }
 
 // Linea en 2D
+// Si los puntos no aseguran coordenadas
+// enteras usar version double. ¡Cuidado!
+// Verifiquense tags <comment> <uncomment>
 struct Linea {
     Punto p, q;
     long long a, b, c;
+    //double a, b, c; // <uncomment/>
 
     Linea() : p(), q(), a(0), b(0), c(0) {}
     Linea(Coord a_, Coord b_, Coord c_)
@@ -116,16 +119,18 @@ struct Linea {
         if (!a) c = p.y, b = -1;
         else if (!b) c = p.x, a = -1;
         else {
+            // <comment>
             c = abs(__gcd(a, b));
             a /= c, b /= c;
+            // </comment>
             c = -a*p.x - b*p.y;
         }
     }
 
     bool operator<(const Linea& cmp) const {
-        if (a != cmp.a) return a < cmp.a;
-        if (b != cmp.b) return b < cmp.b;
-        return c < cmp.c;
+        if (!Igual(a, cmp.a)) return a < cmp.a;
+        if (!Igual(b, cmp.b)) return b < cmp.b;
+        return Igual(c, cmp.c)? false: c < cmp.c;
     }
 };
 
@@ -144,18 +149,28 @@ bool PuntoEnSegmento(const Punto& p, const Linea& s) {
 
 // Saber si dos lineas son paralelas
 bool LineasParalelas(const Linea& l, const Linea& m) {
-    return l.a == m.a && l.b == m.b;
+    return l.a == m.a && l.b == m.b; // <comment/>
+    // <uncomment>
+    //if (Igual(l.b, 0) || Igual(m.b, 0))
+    //    return Igual(l.a, m.a) && Igual(l.b, m.b); 
+    //return Igual(l.a/l.b, m.a/m.b);
+    // </uncomment>
 }
 
 // Saber si dos lineas son iguales
 bool LineasIguales(const Linea& l, const Linea& m) {
-    return LineasParalelas(l, m) && l.c == m.c;
+    return LineasParalelas(l, m) && Igual(l.c, m.c);
 }
 
 // Saber si dos lineas son perpendiculares
 bool LineasPerpendiculares(const Linea& l, const Linea& m) {
     return (l.a == m.b && l.b == -m.a) ||
-           (m.a == l.b && m.b == -l.a);
+           (m.a == l.b && m.b == -l.a); // <comment/>
+    // <uncomment>
+    //if (Igual(l.b, 0) || Igual(l.a, 0))
+    //    return Igual(l.a, m.b) && Igual(l.b, m.a);
+    //return Igual(-l.a/l.b, m.b/m.a);
+    // </uncomment>
 }
 
 // Obtener una linea paralela a l que pase por p
@@ -288,7 +303,7 @@ double Perimetro(const Poligono& P) {
 
 // Cerco convexo de un conjunto de puntos
 Poligono CercoConvexo(vector<Punto> P){
-    // Si P ya esta ordenado no usar sort
+    // Si el poligono ya esta ordenado no usar sort
     sort(P.begin(), P.end());
     Poligono arriba, abajo;
     for (int i = 0; i < P.size(); ++i) {
@@ -325,16 +340,17 @@ Punto Centroide(const Poligono& P) {
         y += cruz * (P[i - 1].y + P[i].y);
         k += cruz * 3;
     }
-    return Punto(x / k, y / k);
+    return Punto(x/k, y/k);
 }
 
-bool RectaCortaPoligono( const Linea& r, const Poligono& P) {
-    int dif = 0;
-    for(int i = 0; i < P.size(); ++i) {
-        int a = ManoDerecha(l.p, l.q, P[i] );
-        if(dif == 0) dif = a;
-        if(a != dif && a && dif)
-            return true;
+bool RectaCortaPoligono(
+    const Linea& r, const Poligono& P) {
+    int primero = 0;
+    for (int i = 0; i < P.size(); ++i) {
+        int lado = ManoDerecha(r.p, r.q, P[i]);
+        if (!lado) continue;
+        if (!primero) primero = lado;
+        if (lado != primero) return true;
     }
     return false;
 }
@@ -361,7 +377,6 @@ vector<Poligono> CortarPoligono(
     Ps[1].push_back(Ps[1][0]);
     return Ps;
 }
-
 
 int main() {
     return 0;

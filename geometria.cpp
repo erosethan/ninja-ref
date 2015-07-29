@@ -4,6 +4,7 @@ using namespace std;
 // Definiciones iniciales
 typedef double Coord;
 const double ERROR = 1e-9;
+const double M_2PI = 2 * M_PI;
 
 // Tolerancia en flotantes
 bool Igual(Coord a, Coord b) { 
@@ -54,19 +55,18 @@ double Cruz(const Punto& v, const Punto& w) {
 
 // Conversion de grados a radianes
 double GradARad(double grd) {
-    return (grd * M_PI) / 180.0;
+    return (grd * M_PI) / 180;
 }
 
 // Conversion de radianes a grados
 double RadAGrad(double rad) {
-    return (rad * 180.0) / M_PI;
+    return (rad * 180) / M_PI;
 }
 
 // Rotar un punto respecto al origen
 // La rotación se hace en orden CCW, para
-// rotar en CW llamar Rotar(p, 360 - alpha)
-Punto Rotar(const Punto& p, double alpha) {
-    double rad = GradARad(alpha);
+// rotar en CW llamar Rotar(p, M_2PI - rad)
+Punto Rotar(const Punto& p, double rad) {
     return Punto(p.x*cos(rad) - p.y*sin(rad),
                  p.x*sin(rad) + p.y*cos(rad));
 }
@@ -88,7 +88,7 @@ Punto Opuesto(const Punto& v) {
 
 // Angulo entre vectores v y w
 double Angulo(const Punto& v, const Punto& w) {
-    return RadAGrad(acos(Dot(v, w) / (Magnitud(v) * Magnitud(w))));
+    return acos(Dot(v, w) / (Magnitud(v) * Magnitud(w)));
 }
 
 // Test de mano derecha: CCW = 1, CW = -1, Colineal = 0
@@ -103,7 +103,7 @@ int ManoDerecha(const Punto& o, const Punto& p, const Punto& q) {
 // Verifiquense tags <comment> <uncomment>
 struct Linea {
     Punto p, q;
-    long long a, b, c;
+    long long a, b, c; // <comment/>
     //double a, b, c; // <uncomment/>
 
     Linea() : p(), q(), a(0), b(0), c(0) {}
@@ -282,7 +282,7 @@ bool AngleSummation(const Punto& p, const Poligono& P) {
     for (int i = 1; i < P.size(); ++i)
         angulo += ManoDerecha(p, P[i - 1],P[i]) *
             Angulo(Trasladar(p, P[i - 1]), Trasladar(p, P[i]));
-    return (fabs(angulo) > 180)? true: false;
+    return (fabs(angulo) > M_PI)? true: false;
 }
 
 // Area de un poligono
@@ -332,6 +332,7 @@ Poligono CercoConvexo(vector<Punto> P){
     return arriba;
 }
 
+// Centroide de un poligono
 Punto Centroide(const Poligono& P) {
     double x = 0, y = 0, k = 0;
     for (int i = 1; i < P.size(); ++i) {
@@ -343,6 +344,7 @@ Punto Centroide(const Poligono& P) {
     return Punto(x/k, y/k);
 }
 
+// Saber si una recta corta un poligono
 bool RectaCortaPoligono(
     const Linea& r, const Poligono& P) {
     int primero = 0;
@@ -355,6 +357,8 @@ bool RectaCortaPoligono(
     return false;
 }
 
+// Obtiene los poligonos resultantes de
+// cortar un poligono convexo con una recta
 vector<Poligono> CortarPoligono(
     const Poligono& P, const Linea& r) {
     if (!RectaCortaPoligono(r, P))
@@ -378,90 +382,98 @@ vector<Poligono> CortarPoligono(
     return Ps;
 }
 
-//Circulo
-
+// Circulo en 2D
 struct Circulo {
-    Punto c;
-    Coord r;
-    Circulo():c(),r(0){}
+    Punto c; Coord r;
+
+    Circulo() : c(), r(0) {}
     Circulo(const Punto& c_, Coord r_)
-        :c(c_),r(r_){}
+        : c(c_), r(r_) {}
+
     bool operator<(const Circulo& cmp) const {
-        if(!(c == cmp.c))return c < cmp.c;
-        return Igual(r, cmp.r) ? false: r < cmp.r;
+        if (!(c == cmp.c)) return c < cmp.c;
+        return Igual(r, cmp.r)? false: r < cmp.r;
     }
 };
 
-double Area(const Circulo& C) {
-    return pow(C.r, 2) * M_PI;
+// Perimetro de un circulo
+double Circuferencia(const Circulo& c) {
+    return M_2PI * c.r;
 }
 
-double Circuferencia(const Circulo& C) {
-    return C.r * M_PI * 2;
+// Area de un circulo
+double Area(const Circulo& c) {
+    return M_PI * c.r * c.r;
 }
 
-bool PuntoEnCirculo(const Punto& P, const Circulo& C) {
-    return !(Distancia(P,C.c) > C.r );
+// Saber si un punto esta dentro de un circulo
+bool PuntoEnCirculo(const Punto& p, const Circulo& c) {
+    return !(Distancia(p, c.c) > c.r);
 }
 
-bool PuntoEnCircunferencia(const Punto& P, const Circulo& C) {
-    return Igual(Distancia(P, C.c), C.r);
-} 
-
-double DistanciaPuntoCirculo(const Punto& P, const Circulo& C) {
-    double dist = Distancia(P,C.c) - C.r;
-    return (dist < 0) ? 0 : dist;
+// Saber si un punto esta en el perimetro de un circulo
+bool PuntoEnCircunferencia(const Punto& p, const Circulo& c) {
+    return Igual(Distancia(p, c.c), c.r);
 }
 
-Punto ProyPuntoCircunferencia(const Punto& P, const Circulo& C) {
-    Punto v = Trasladar(P,C.c);
-    double prop = DistanciaPuntoCirculo(P,C)/Magnitud(v);
-    return Trasladar(Opuesto(P), Escalar (v, prop));    
+// Distancia de un punto p a un circulo c
+double DistanciaPuntoCirculo(const Punto& p, const Circulo& c) {
+    double dist = Distancia(p, c.c) - c.r;
+    return (dist < 0)? 0: dist;
 }
 
-Linea ProyTangente(const Punto& P, const Circulo& C) {
-    double d = Distancia(P, C.c);
-    double x = sqrt(d * d - C.r * C.r);
-    double a = asin( x / d );
-    Punto p_ = Trasladar(C.c,ProyPuntoCircunferencia(P,C));
-    Linea seg(Trasladar(Opuesto(C.c), Rotar(p_, a)), 
-        Trasladar(Opuesto(C.c), Rotar(p_,PI2-a)));
-    return seg;
+// Cuerda = -1, Tangente = 0, No se intersectan = 1
+int IntersecCirculoRecta(const Circulo& c, const Linea& r) {
+    double dist = DistanciaPuntoRecta(c.c, r);
+    if (Igual(dist, c.r)) return 0;
+    return (dist < c.r)? -1: 1;
 }
 
-double DistanciaPuntoCirculo(const Circulo& C, const Linea& r) {
-    double dist = DistanciaPuntoRecta(C.c, r) - C.r;
-    return (dist < 0)?0:dist;
+// Proyecta un punto fuera de un circulo en su circunferencia
+Punto ProyPuntoCircunferencia(const Punto& p, const Circulo& c) {
+    Punto v = Trasladar(p, c.c);
+    double prop = DistanciaPuntoCirculo(p, c) / Magnitud(v);
+    return Trasladar(Opuesto(p), Escalar(v, prop));
 }
 
-//-1 cuerda, 0 tangente, 1 no toca
-int IntersecCirculoRecta(const Circulo& C, const Linea& r) {
-    double d = DistanciaPuntoRecta(C.c, r);
-    if(Igual(d, C.r))return 0;
-    return (d < C.r)? -1 : 1;
+// Obtiene los puntos que desde el punto p forman
+// lineas tangentes a la circunferencia del circulo c
+Linea ProyTangentes(const Punto& p, const Circulo& c) {
+    double d = Distancia(p, c.c);
+    double a = asin(sqrt(d*d - c.r*c.r) / d);
+    Punto p_ = Trasladar(c.c, ProyPuntoCircunferencia(p, c));
+    return Linea(Trasladar(Opuesto(c.c), Rotar(p_, M_2PI - a)),
+                 Trasladar(Opuesto(c.c), Rotar(p_, a)));
 }
 
-Punto Chicharron(double a, double b, double c) {
-    double sq=sqrt(b*b - 4 * a * c);
-    return Punto((-b+sq)/(2*a), (-b-sq)/(2*a));
+// Soluciones a un sistema de ecuaciones cuadraticas
+Punto Chicharronera(double a, double b, double c) {
+    double sq = sqrt(b*b - 4*a*c);
+    return Punto((-b + sq) / (2*a),
+                 (-b - sq) / (2*a));
 }
 
-Linea CuerdaInterseccion(const Linea& r, const Circulo& C) {
-    if(IntersecCirculoRecta(C,r)==1)return Linea();
-    Punto xs,ys;
-    if(! Igual(r.b, 0)) {
-        Linea R=Linea(Trasladar(C.c,r.p),Trasladar(C.c,r.q));
-        xs = Chicharron( R.a * R.a + R.b * R.b , 2 * R.a * R.c , R.c * R.c - R.b * R.b * C.r * C.r);
-        ys = Punto((R.c + R.a * xs.x) / -R.b, (R.c + R.a * xs.y) / -R.b);
-        xs = Trasladar(Opuesto(C.c), xs);
-        ys = Trasladar(Opuesto(C.c), ys);
+// Cuerda de interseccion entre una recta y un circulo
+Linea CuerdaInterseccion(const Linea& r, const Circulo& c) {
+    if (IntersecCirculoRecta(c, r) == 1) return Linea();
+    Punto p, q;
+    if (!Igual(r.b, 0)) {
+        Linea R = Linea(Trasladar(c.c, r.p),
+                        Trasladar(c.c, r.q));
+        p = Chicharronera(R.a*R.a + R.b*R.b, 2*R.a*R.c,
+                          R.c*R.c - R.b*R.b*c.r*c.r);
+        q = Punto(p.y, (R.c + R.a*p.y) / -R.b);
+        p.y = (R.c + R.a*p.x) / -R.b;
+        p = Trasladar(Opuesto(c.c), p);
+        q = Trasladar(Opuesto(c.c), q);
     }
     else {
-        xs = Punto(r.p.x,r.p.x);
-        double sq = sqrt(C.r * C.r - pow(r.p.x - C.c.y, 2));
-        ys = Punto(C.c.x + sq, C.c.x - sq);
+        double sq = sqrt(c.r*c.r -
+            pow(r.p.x - c.c.y, 2));
+        p = Punto(r.p.x, c.c.x + sq);
+        q = Punto(r.p.x, c.c.x - sq);
     }
-    return Linea(Punto(xs.x, ys.x),Punto(xs.y, ys.y));
+    return Linea(p, q);
 }
 
 int main() {

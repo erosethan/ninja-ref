@@ -127,6 +127,7 @@ struct Linea {
         }
     }
 
+    // ¡Peligro! Ordena por ecuacion de recta
     bool operator<(const Linea& cmp) const {
         if (!Igual(a, cmp.a)) return a < cmp.a;
         if (!Igual(b, cmp.b)) return b < cmp.b;
@@ -469,9 +470,9 @@ Linea CuerdaInterseccion(const Linea& r, const Circulo& c) {
     }
     else {
         double sq = sqrt(c.r*c.r -
-            pow(r.p.x - c.c.y, 2));
-        p = Punto(r.p.x, c.c.x + sq);
-        q = Punto(r.p.x, c.c.x - sq);
+            pow(r.p.x - c.c.x, 2));
+        p = Punto(r.p.x, c.c.y + sq);
+        q = Punto(r.p.x, c.c.y - sq);
     }
     return Linea(p, q);
 }

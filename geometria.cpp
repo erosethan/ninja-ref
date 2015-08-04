@@ -107,8 +107,14 @@ struct Linea {
     //double a, b, c; // <uncomment/>
 
     Linea() : p(), q(), a(0), b(0), c(0) {}
+
     Linea(Coord a_, Coord b_, Coord c_)
-        : p(), q(), a(a_), b(b_), c(c_) {}
+        : p(), q(), a(a_), b(b_), c(c_) {
+        // <comment>
+        Coord g = abs(__gcd(a, b));
+        a /= g, b /= g;
+        // </comment>
+    }
 
     Linea(const Punto& p_, const Punto& q_)
         : p(p_), q(q_), a(), b(), c() {
@@ -477,6 +483,17 @@ Linea CuerdaInterseccion(const Linea& r, const Circulo& c) {
     return Linea(p, q);
 }
 
+//Circulo c dentro de d
+bool CirculoenCirculo(const Circulo& c, const Circulo& d) {
+    return Distancia(c.c, d.c) < d.r - c.r;
+}
+
+//-1 si un circulo esta dentro del otro, 0 si estan disjuntos, 1 si intersectan
+int IntersecCirculoCirculo(const Circulo& c, const Circulo& d) {
+    double d = Distancia(c.c, d.c);
+    if(d < fabs(c.r - d.r)) return -1;
+    return (d < c.r + d.r)?1:0;
+}
 int main() {
     return 0;
 }

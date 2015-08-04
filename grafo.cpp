@@ -42,6 +42,28 @@ int EncontrarCiclo(int u){
 	return EncontrarCiclo_(u, -1);
 }
 
+//menor a mayor dependencia
+//indexado de 0 a n-1
+vector <int> ordentopo;
+
+void OrdenTopologico_(int u) {
+	visitado[u] = true;
+	for(int i = 0; i < grafo[u].size(); ++i) {
+		int v =  grafo[u][i];
+		if(!visitado[v])
+			OrdenTopologico_(v);
+	}
+	ordentopo.push_back(u);
+}
+void OrdenTopologico(int n){
+	fill(visitado, visitado+n, false);
+	ordentopo.clear();
+	for(int i = 0; i < n; i++) {
+		if(!visitado[i])
+			OrdenTopologico_(i);
+	}
+}
+
 int main() {
 	return 0;
 }

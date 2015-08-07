@@ -446,8 +446,8 @@ Punto ProyPuntoCircunferencia(const Punto& p, const Circulo& c) {
 // Obtiene los puntos que desde el punto p forman
 // lineas tangentes a la circunferencia del circulo c
 Linea ProyTangentes(const Punto& p, const Circulo& c) {
-    double d = Distancia(p, c.c);
-    double a = asin(sqrt(d*d - c.r*c.r) / d);
+    double dist = Distancia(p, c.c);
+    double a = asin(sqrt(d*d - c.r*c.r) / dist);
     Punto p_ = Trasladar(c.c, ProyPuntoCircunferencia(p, c));
     return Linea(Trasladar(Opuesto(c.c), Rotar(p_, M_2PI - a)),
                  Trasladar(Opuesto(c.c), Rotar(p_, a)));

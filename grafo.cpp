@@ -142,6 +142,7 @@ void PuntosArtPuentes(int n) {
 
 
 //union find estructura
+//indices de 0 a n-1
 struct UnionFind {
     int nconjuntos;
     vector<int> padre;

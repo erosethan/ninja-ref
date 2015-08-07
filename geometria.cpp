@@ -3,6 +3,7 @@ using namespace std;
 
 // Definiciones iniciales
 typedef double Coord;
+
 const double ERROR = 1e-9;
 const double M_2PI = 2 * M_PI;
 
@@ -246,6 +247,7 @@ double DistanciaRectaRecta(const Linea& l, const Linea& m) {
 
 // Distancia entre dos segmentos s y r
 double DistanciaSegmenSegmen(const Linea& s, const Linea& r) {
+    if (InterseccionSegmentos(s, r)) return 0;
     return min(min(DistanciaPuntoSegmento(s.p, r),
                    DistanciaPuntoSegmento(s.q, r)),
                min(DistanciaPuntoSegmento(r.p, s),

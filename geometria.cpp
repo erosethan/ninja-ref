@@ -111,8 +111,8 @@ struct Linea {
     Linea(Coord a_, Coord b_, Coord c_)
         : p(), q(), a(a_), b(b_), c(c_) {
         // <comment>
-        Coord g = abs(__gcd(a, b));
-        a /= g, b /= g;
+        c_ = abs(__gcd(a, b));
+        a /= c_, b /= c_;
         // </comment>
     }
 
@@ -242,6 +242,14 @@ double DistanciaPuntoSegmento(const Punto& p, const Linea& s) {
 // Distancia entre dos lineas l y m
 double DistanciaRectaRecta(const Linea& l, const Linea& m) {
     return LineasParalelas(l, m)? DistanciaPuntoRecta(l.p, m): 0;
+}
+
+// Distancia entre dos segmentos s y r
+double DistanciaSegmenSegmen(const Linea& s, const Linea& r) {
+    return min(min(DistanciaPuntoSegmento(s.p, r),
+                   DistanciaPuntoSegmento(s.q, r)),
+               min(DistanciaPuntoSegmento(r.p, s),
+                   DistanciaPuntoSegmento(r.q, s)));
 }
 
 // Un poligono es una serie de
@@ -429,13 +437,6 @@ double DistanciaPuntoCirculo(const Punto& p, const Circulo& c) {
     return (dist < 0)? 0: dist;
 }
 
-// Cuerda = -1, Tangente = 0, No se intersectan = 1
-int IntersecCirculoRecta(const Circulo& c, const Linea& r) {
-    double dist = DistanciaPuntoRecta(c.c, r);
-    if (Igual(dist, c.r)) return 0;
-    return (dist < c.r)? -1: 1;
-}
-
 // Proyecta un punto fuera de un circulo en su circunferencia
 Punto ProyPuntoCircunferencia(const Punto& p, const Circulo& c) {
     Punto v = Trasladar(p, c.c);
@@ -446,11 +447,17 @@ Punto ProyPuntoCircunferencia(const Punto& p, const Circulo& c) {
 // Obtiene los puntos que desde el punto p forman
 // lineas tangentes a la circunferencia del circulo c
 Linea ProyTangentes(const Punto& p, const Circulo& c) {
-    double dist = Distancia(p, c.c);
-    double a = asin(sqrt(d*d - c.r*c.r) / dist);
+    double a = acos(c.r / Distancia(p, c.c));
     Punto p_ = Trasladar(c.c, ProyPuntoCircunferencia(p, c));
     return Linea(Trasladar(Opuesto(c.c), Rotar(p_, M_2PI - a)),
                  Trasladar(Opuesto(c.c), Rotar(p_, a)));
+}
+
+// Cuerda = -1, Tangente = 0, No se intersectan = 1
+int IntersecCirculoRecta(const Circulo& c, const Linea& r) {
+    double dist = DistanciaPuntoRecta(c.c, r);
+    if (Igual(dist, c.r)) return 0;
+    return (dist < c.r)? -1: 1;
 }
 
 // Soluciones a un sistema de ecuaciones cuadraticas
@@ -483,17 +490,18 @@ Linea CuerdaInterseccion(const Linea& r, const Circulo& c) {
     return Linea(p, q);
 }
 
-//Circulo c dentro de d
+// Saber si un circulo c esta dentro de un circulo d 
 bool CirculoenCirculo(const Circulo& c, const Circulo& d) {
     return Distancia(c.c, d.c) < d.r - c.r;
 }
 
-//-1 si un circulo esta dentro del otro, 0 si estan disjuntos, 1 si intersectan
+// Uno dentro del otro = -1, Disjuntos = 0, Intersectan = 1
 int IntersecCirculoCirculo(const Circulo& c, const Circulo& d) {
-    double d = Distancia(c.c, d.c);
-    if(d < fabs(c.r - d.r)) return -1;
-    return (d < c.r + d.r)?1:0;
+    double dist = Distancia(c.c, d.c);
+    if(dist < fabs(c.r - d.r)) return -1;
+    return (dist < c.r + d.r)? 1: 0;
 }
+
 int main() {
     return 0;
 }

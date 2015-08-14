@@ -147,7 +147,7 @@ struct Linea {
 
 // Saber si un punto p esta en la recta r
 bool PuntoEnRecta(const Punto& p, const Linea& r) {
-    return Igual(r.a*p.x + r.b*p.y + r.c, 0);
+    return !ManoDerecha(r.p, r.q, p);
 }
 
 // Saber si un punto o esta en el segmento s
@@ -204,11 +204,18 @@ bool IntersecRectaSegmen(const Linea& r, const Linea& s) {
 
 // Saber si dos segmentos s y t se intersectan
 bool InterseccionSegmentos(const Linea& s, const Linea& t) {
-    if (ManoDerecha(s.p, s.q, t.p) ==
-        ManoDerecha(s.p, s.q, t.q)) return false;
-    if (ManoDerecha(t.p, t.q, s.p) ==
-        ManoDerecha(t.p, t.q, s.q)) return false;
-    return true;
+	int t1 = ManoDerecha(s.p, s.q, t.p);
+	int t2 = ManoDerecha(s.p, s.q, t.q);
+	if (t1 == t2) {
+		if (!t1 && (PuntoEnSegmento(s.p, t) ||
+			PuntoEnSegmento(s.q, t) ||
+			PuntoEnSegmento(t.p, s) ||
+			PuntoEnSegmento(t.q, s)))
+			return true;
+		return false;
+	}
+	return ManoDerecha(t.p, t.q, s.p) !=
+		   ManoDerecha(t.p, t.q, s.q);
 }
 
 // Obtener punto de interseccion entre lineas l y m

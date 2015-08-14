@@ -123,7 +123,6 @@ void PuntosArtPuentes_(int u, int p) {
         punto_art[u] |= low[v] >= num[u];
         low[u] = min(low[u], low[v]);
     }
-    //low[u] = INF;
 }
 
 void PuntosArtPuentes(int n) {

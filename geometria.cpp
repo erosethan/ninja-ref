@@ -198,12 +198,12 @@ bool InterseccionRectas(const Linea& r, const Linea& s) {
 
 // Saber si una recta r y un segmento s se intersectan
 bool IntersecRectaSegmen(const Linea& r, const Linea& s) {
-    return ManoDerecha(r.p, r.q, s.p) !=
-           ManoDerecha(r.p, r.q, s.q);
+    int t1 = ManoDerecha(r.p, r.q, s.p);
+    int t2 = ManoDerecha(r.p, r.q, s.q);
+    return (t1 != t2)? true: !t1? true: false;
 }
 
 // Saber si dos segmentos s y t se intersectan
-
 bool InterseccionSegmentos(const Linea& s, const Linea& t) {
     int t1 = ManoDerecha(s.p, s.q, t.p);
     int t2 = ManoDerecha(s.p, s.q, t.q);
@@ -432,7 +432,8 @@ double Area(const Circulo& c) {
 
 // Saber si un punto esta dentro de un circulo
 bool PuntoEnCirculo(const Punto& p, const Circulo& c) {
-    return !(Distancia(p, c.c) > c.r);
+    double dist = Distancia(p, c.c);
+    return dist < c.r || Igual(dist, c.r);
 }
 
 // Saber si un punto esta en el perimetro de un circulo
@@ -500,15 +501,15 @@ Linea CuerdaInterseccion(const Linea& r, const Circulo& c) {
 }
 
 // Saber si un circulo c esta dentro de un circulo d 
-bool CirculoenCirculo(const Circulo& c, const Circulo& d) {
+bool CirculoEnCirculo(const Circulo& c, const Circulo& d) {
     return Distancia(c.c, d.c) < d.r - c.r;
 }
 
 // Uno dentro del otro = -1, Disjuntos = 0, Intersectan = 1
 int IntersecCirculoCirculo(const Circulo& c, const Circulo& d) {
     double dist = Distancia(c.c, d.c);
-    if(dist < fabs(c.r - d.r)) return -1;
-    return (dist < c.r + d.r)? 1: 0;
+    if (dist < fabs(c.r - d.r)) return -1;
+    return (dist > c.r + d.r)? 0: 1;
 }
 
 int main() {

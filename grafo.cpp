@@ -176,6 +176,69 @@ struct UnionFind {
     }
 };
 
+//solo para grafos
+char color[MAXN];
+
+bool Bicolorear_(int u, int c) {
+    color[u] = c;
+    for (i = 0; i < grafo[u].size(); i++) {
+        int v = grafo[u][i];
+        if(color[v] == 1 - c) continue;
+        if(color[v] == c )return false;
+        if(!Bicolorear_(v, 1 - c)) return false;
+    }
+}
+
+bool Bicolorear(int n) {
+    fill(color, color + n, -1);
+    for(int i = 0; i < n; i++)
+        if(color[u] == -1) && !Bicolorear_(i, 0)) return false;
+    return true;
+}
+
+vector<int> BFS(int o, int s) {
+    vector <int> dist(n,INF);
+    queue<int> q;
+    q.push(o);
+    dist[o] = 0;
+    while(!q.empty()) {
+        int u = q.front();
+        q.pop();
+
+        for(int i = 0; i < grafo[u].size(); i++) {
+            int v = grafo[u][i];
+            if(dist[u] + 1 < dist[v]) {
+                dist[v] = dist[u] + 1;
+                q.push(v);
+            }
+        }
+    }
+    return dist;
+}
+
+vector<int> Dijkstra(int o, int s) {
+    vector <int> dist(n,INF);
+    priority_queue<AristaPeso, vector<AristaPeso>, greater<AristaPeso> > pq;
+    pq.push(0,o);
+    dist[o] = 0;
+    while(!pq.empty()) {
+        int u = pq.top().second;
+        int p = pq.top().first;
+        pq.pop();
+        if(p > dist[u]) continue;        
+        for(int i = 0; i < grafo[u].size(); i++) {
+            int v = grafo[u][i];
+            if(dist[u] + p < dist[v]) {
+                dist[v] = dist[u] + p;
+                q.push(AristaPeso(dist[v] ,v));
+            }
+        }
+    }
+    return dist;
+}
+
+
+
 int main() {
     return 0;
 }

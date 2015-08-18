@@ -181,7 +181,7 @@ char color[MAXN];
 
 bool Bicolorear_(int u, int c) {
     color[u] = c;
-    for (i = 0; i < grafo[u].size(); i++) {
+    for (int i = 0; i < grafo[u].size(); i++) {
         int v = grafo[u][i];
         if(color[v] == 1 - c) continue;
         if(color[v] == c )return false;
@@ -192,11 +192,11 @@ bool Bicolorear_(int u, int c) {
 bool Bicolorear(int n) {
     fill(color, color + n, -1);
     for(int i = 0; i < n; i++)
-        if(color[u] == -1) && !Bicolorear_(i, 0)) return false;
+        if((color[i] == -1) && !(Bicolorear_(i, 0))) return false;
     return true;
 }
 
-vector<int> BFS(int o, int s) {
+vector<int> BFS(int o, int n) {
     vector <int> dist(n,INF);
     queue<int> q;
     q.push(o);
@@ -216,10 +216,10 @@ vector<int> BFS(int o, int s) {
     return dist;
 }
 
-vector<int> Dijkstra(int o, int s) {
-    vector <int> dist(n,INF);
+vector<int> Dijkstra(int o, int n) {
+    vector <int> dist(n, INF);
     priority_queue<AristaPeso, vector<AristaPeso>, greater<AristaPeso> > pq;
-    pq.push(0,o);
+    pq.push( AristaPeso(0,o) );
     dist[o] = 0;
     while(!pq.empty()) {
         int u = pq.top().second;
@@ -230,7 +230,7 @@ vector<int> Dijkstra(int o, int s) {
             int v = grafo[u][i];
             if(dist[u] + p < dist[v]) {
                 dist[v] = dist[u] + p;
-                q.push(AristaPeso(dist[v] ,v));
+                pq.push(AristaPeso(dist[v] ,v));
             }
         }
     }

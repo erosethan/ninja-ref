@@ -7,7 +7,7 @@ typedef vector<Arista> Nodo;
 typedef pair<int, int> AristaPeso;
 typedef vector<AristaPeso> NodoPeso;
 
-const int INF (1 << 30);
+const int INF = 1 << 30;
 const int MAXN = 100000;
 const int MAXM = 100000;
 
@@ -139,7 +139,6 @@ void PuntosArtPuentes(int n) {
     }
 }
 
-
 // Estructura de conjuntos disjuntos.
 // Conjuntos indexados de 0 a n - 1.
 
@@ -176,38 +175,40 @@ struct UnionFind {
     }
 };
 
-//solo para grafos
+// Saber si un grafo es bicoloreable o bipartito.
+// Se asumen los nodos indexados de 0 a n - 1.
+
 char color[MAXN];
 
 bool Bicolorear_(int u, int c) {
     color[u] = c;
-    for (int i = 0; i < grafo[u].size(); i++) {
+    for (int i = 0; i < grafo[u].size(); ++i) {
         int v = grafo[u][i];
-        if(color[v] == 1 - c) continue;
-        if(color[v] == c )return false;
-        if(!Bicolorear_(v, 1 - c)) return false;
+        if (color[v] == 1 - c) continue;
+        if (color[v] == c) return false;
+        if (!Bicolorear_(v, 1 - c)) return false;
     }
 }
 
 bool Bicolorear(int n) {
     fill(color, color + n, -1);
-    for(int i = 0; i < n; i++)
-        if((color[i] == -1) && !(Bicolorear_(i, 0))) return false;
+    for (int i = 0; i < n; ++i)
+        if (color[i] == -1 &&
+            !Bicolorear_(i, 0))
+            return false;
     return true;
 }
 
-vector<int> BFS(int o, int n) {
-    vector <int> dist(n,INF);
-    queue<int> q;
-    q.push(o);
-    dist[o] = 0;
-    while(!q.empty()) {
-        int u = q.front();
-        q.pop();
+// Busqueda en amplitud. Nodos con indice del 0 al n - 1.
 
-        for(int i = 0; i < grafo[u].size(); i++) {
+vector<int> BFS(int o, int n) {
+    vector<int> dist(n, INF);
+    queue<int> q; q.push(o); dist[o] = 0;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int i = 0; i < grafo[u].size(); ++i) {
             int v = grafo[u][i];
-            if(dist[u] + 1 < dist[v]) {
+            if (dist[u] + 1 < dist[v]) {
                 dist[v] = dist[u] + 1;
                 q.push(v);
             }
@@ -216,28 +217,29 @@ vector<int> BFS(int o, int n) {
     return dist;
 }
 
+// Algoritmo de Dijkstra. Nodos indexados del 0 al n - 1.
+
 vector<int> Dijkstra(int o, int n) {
-    vector <int> dist(n, INF);
-    priority_queue<AristaPeso, vector<AristaPeso>, greater<AristaPeso> > pq;
-    pq.push( AristaPeso(0,o) );
-    dist[o] = 0;
-    while(!pq.empty()) {
+    vector<int> dist(n, INF);
+    priority_queue<AristaPeso,
+                   vector<AristaPeso>,
+                   greater<AristaPeso> > pq;
+    pq.push(AristaPeso(0, o)); dist[o] = 0;
+    
+    while (!pq.empty()) {
         int u = pq.top().second;
-        int p = pq.top().first;
-        pq.pop();
-        if(p > dist[u]) continue;        
-        for(int i = 0; i < grafo[u].size(); i++) {
+        int p = pq.top().first; pq.pop();
+        if (dist[u] < p) continue;        
+        for (int i = 0; i < grafo[u].size(); ++i) {
             int v = grafo[u][i];
-            if(dist[u] + p < dist[v]) {
+            if (dist[u] + p < dist[v]) {
+                pq.push(AristaPeso(dist[v], v));
                 dist[v] = dist[u] + p;
-                pq.push(AristaPeso(dist[v] ,v));
             }
         }
     }
     return dist;
 }
-
-
 
 int main() {
     return 0;

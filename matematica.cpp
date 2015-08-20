@@ -24,7 +24,6 @@ void EliminaGaussiana(Matriz& m) {
             for (int k = i; k < m[j].size(); ++k)
                 m[j][k] -= m[i][k] * ratio;
         }
-        
     }
 }
 

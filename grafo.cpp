@@ -12,7 +12,7 @@ const int MAXN = 100000;
 const int MAXM = 100000;
 
 Nodo grafo[MAXN];
-Nodo grafo_peso[MAXN];
+NodoPeso grafo_peso[MAXN];
 int in_degree[MAXN];
 
 void AgregarArista(int u, int v) {
@@ -230,11 +230,12 @@ vector<int> Dijkstra(int o, int n) {
         int u = pq.top().second;
         int p = pq.top().first; pq.pop();
         if (dist[u] < p) continue;        
-        for (int i = 0; i < grafo[u].size(); ++i) {
-            int v = grafo[u][i];
+        for (int i = 0; i < grafo_peso[u].size(); ++i) {
+            p = grafo_peso[u][i].second;
+            int v = grafo_peso[u][i].first;
             if (dist[u] + p < dist[v]) {
-                pq.push(AristaPeso(dist[v], v));
                 dist[v] = dist[u] + p;
+                pq.push(AristaPeso(dist[v], v));
             }
         }
     }

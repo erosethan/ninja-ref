@@ -2,17 +2,15 @@
 using namespace std;
 
 // Definiciones iniciales
-typedef vector<int> Nodo;
 typedef pair<int, int> Arista;
-typedef vector<Arista> NodoPeso;
+typedef pair<int, Arista> PesoArista;
 
 const int INF = 1 << 30;
 const int MAXN = 1000;
-const int MAXM = 1000;
 
-Nodo grafo[MAXN];
-NodoPeso grafo_peso[MAXN];
 int in_degree[MAXN];
+vector<int> grafo[MAXN];
+vector<Arista> grafo_peso[MAXN];
 
 void AgregarArista(int u, int v) {
     grafo[u].push_back(v);
@@ -241,8 +239,9 @@ vector<int> Dijkstra(int o, int n) {
 }
 
 // Dijkstra version lineal. Nodos indexados del 0 al n - 1.
+// ¡Peligro! Recuerden cuidar el peso maximo de las aristas.
 
-const int MAXP = 100;
+const int MAXP = 100; // Peso maximo
 
 vector<int> DijkstraLineal(int o, int n) {
     vector<int> dist(n, INF);
@@ -279,8 +278,6 @@ void FloydWarshall(int n) {
 }
 
 // Arbol de expansion minima por Kruskal. Nodos del 0 al n - 1. 
-
-typedef pair<int, Arista> PesoArista;
 
 vector<PesoArista> Kruskal(int n) {
     vector<PesoArista> aristas;

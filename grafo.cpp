@@ -242,6 +242,115 @@ vector<int> Dijkstra(int o, int n) {
     return dist;
 }
 
+const int MAXP = 100;
+vector<int> DijkstraLineal(int o, int n) {
+    vector < queue<int> > q(MAXP);
+    vector <bool> procesado(n, false);
+    vector<int > dist(n, INF);
+    q[0].push(o); dist[0] = 0;
+    int qi = 0, total = 1;
+    while(total) {
+        if(!q[qi].empty()) {
+            int u = q[qi].front();
+            q[qi].pop();
+            total--;
+            if(procesado[u])continue;
+            procesado[u] = true;
+            for(int i = 0; i < grafo_peso[u].size(); ++i) {
+                int v = grafo_peso[u][i].first;
+                int p = grafo_peso[u][i].second;
+                if(dist[u] + p < dist[v]) {
+                    q[(qi + p) % MAXP].push(v);
+                    ++total;
+                }
+            }
+        }
+        else qi = (qi + 1) % MAXP;
+    }
+}
+// O(n³)
+//dist matriz de adyacencia
+/*
+void floy(int n){
+    for(int k = 0; k < n; k++)
+        for(int i = 0; i < n; i++)
+            for(int j = 0; j < n; j++)
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+}
+*/
+
+//por que gama y alichos no sabian exp binaria
+long long Exp(long long a, long long n, long long m) {
+    long long res = 1, p = a;
+    for(long long i = 0; 1ll << i <= n; i++) {
+        if(n & 1ll << i) res = (res * p) % m;
+        p = (p * p) % m;
+    }
+    return res;
+}
+
+//multiplicacion binaria
+long long Mult(long long a, long long n, long long m) {
+    long long res = 0, p = a;
+    for(long long i = 0; 1ll << i <= n; i++) {
+        if(n & 1ll << i) res = (res + p) % m;
+        p = (p + p) % m;
+    }
+    return res;
+}
+
+//kruskal
+typedef pair <int, AristaPeso> KArista;
+vector <KArista> kruskal(int n) {
+    vector <KArista> mst;
+    vector <KArista> aristas;
+    for(int u = 0; u < n; u++)
+        for(int i = 0; i < grafo_peso[u].size(); i++) {
+            int v = grafo_peso[u][i].first;
+            int p = grafo_peso[u][i].second;
+            aristas.push_back(KArista(p, AristaPeso(u, v)));
+        }
+    sort(aristas.begin(), aristas.end());
+    UnionFind uf(n);
+    for(int i = 0; i < aristas.size(); ++i) {
+        int u = aristas[i].second.first;
+        int v = aristas[i].second.second;
+        if(uf.MismoConjunto(u, v)) continue;
+        uf.Unir(u, v);
+        mst.push_back(aristas[i]);
+    }
+    return mst;
+}
+
+
+
 int main() {
     return 0;
+}
+vector<int> Bellmanford(int o, int n) {
+    vector<int >dist(n, INF);
+    dist[o] = 0;
+    for(int i = 0; i < n; i++) {
+        for(int u = 0; u < n; u++) {
+            if(dist[u] == INF) continue;
+            for(int j = 0; j < grafo_peso[u].size(); j++) {
+                int v = grafo_peso[u][j].first;
+                int p = grafo_peso[u][j].second;
+                dist[v] = min(dist[v], dist[u] + p);
+            }
+        }
+    }
+    bool ciclo_neg = false;
+    for(int u = 0; u < n; u++) {
+        if(dist[u] == INF) continue;
+        for(int j = 0; j < grafo_peso[u].size(); j++) {
+            int v = grafo_peso[u][j].first;
+            int p = grafo_peso[u][j].second;
+            ciclo_neg |= dist[u] + p < dist[v];
+        }
+    }
+    if(!ciclo_neg) return dist;
+    for(int u = 0; u < n; ++u)
+        if(dist[u] < INF)dist[u]= -INF;
+    return dist;
 }

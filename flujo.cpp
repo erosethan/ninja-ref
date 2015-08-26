@@ -56,6 +56,9 @@ int costo[MAXN][MAXN];
 
 vector<Arista> EmparejaCostoMaxBipartito(
     const vector<int>& l, const vector<int>& r) {
+    // Si l.size() != r.size() KABOOM!
+    assert(l.size() == r.size());
+
     int n = l.size() + r.size();
     fill(pareja, pareja + n, -1);
     fill(etiqueta, etiqueta + n, 0);
@@ -113,7 +116,8 @@ vector<Arista> EmparejaCostoMaxBipartito(
     }
     vector<Arista> parejas;
     for (int i = 0; i < l.size(); ++i)
-        parejas.push_back(Arista(l[i],pareja[l[i]]));
+        parejas.push_back(Arista(
+            l[i], pareja[l[i]]));
     return parejas;
 }
 

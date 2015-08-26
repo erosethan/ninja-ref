@@ -85,7 +85,7 @@ void ObtenerCFCs_(int u) {
         vector<int> CFC;
         while (activo[top_activo - 1] != u) {
             CFC.push_back(activo[--top_activo]);
-            low[activo[top_activo]] = MAXN;
+            low[activo[top_activo]] = INF;
         }
         CFC.push_back(activo[--top_activo]);
         low[u] = INF; CFCs.push_back(CFC);

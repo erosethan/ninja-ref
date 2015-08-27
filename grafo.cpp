@@ -108,18 +108,22 @@ Nodo puentes[MAXN]; // Resultado
 bool punto_art[MAXN]; // Resultado
 
 void PuntosArtPuentes_(int u, int p) {
+    int hijos = 0;
     low[u] = num[u] = ++numeracion;
     for (int i = 0; i < grafo[u].size(); ++i) {
-        if (grafo[u][i] == p) continue;
         int v = grafo[u][i];
-        if (!num[v]) PuntosArtPuentes_(v, u);
-        if (low[v] > num[u]) {
-            puentes[u].push_back(v);
-            puentes[v].push_back(u);
-        }
-        punto_art[u] |= low[v] >= num[u];
-        low[u] = min(low[u], low[v]);
+        if (!num[v]) {
+        	++hijos;
+        	PuntosArtPuentes_(v, u);
+        	if (low[v] > num[u]) {
+            	puentes[u].push_back(v);
+            	puentes[v].push_back(u);
+        	}
+        	low[u] = min(low[u], low[v]);
+        	punto_art[u] |= low[v] >= num[u];
+        } else low[u] = min(low[u], num[v]);
     }
+    if (p == -1) punto_art[u] = hijos > 1;
 }
 
 void PuntosArtPuentes(int n) {
@@ -127,13 +131,10 @@ void PuntosArtPuentes(int n) {
     fill(num, num + n, 0);
     fill(low, low + n, 0);
     fill(punto_art, punto_art + n, false);
-    for(int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i)
         puentes[i].clear();
-    for(int i = 0; i < n; ++i) {
-        if(num[i]) continue;
-        PuntosArtPuentes_(i, -1);
-        punto_art[i] = grafo[i].size() > 1;
-    }
+    for (int i = 0; i < n; ++i)
+        if (!num[i]) PuntosArtPuentes_(i, -1);
 }
 
 // Estructura de conjuntos disjuntos.

@@ -18,13 +18,13 @@ bool visitado[MAXN];
 
 int CaminoIncremental(int u) {
     visitado[u] = true;
-    for (int i = 0; i < grafo[i].size(); ++i) {
+    for (int i = 0; i < grafo[u].size(); ++i) {
         int v = grafo[u][i];
         if (pareja[v] == -1) 
             return pareja[v] = u;
         if (visitado[pareja[v]]) continue;
-        if (v == CaminoIncremental(
-            pareja[v])) return u;
+        if (CaminoIncremental(
+            pareja[v]) != -1) return pareja[v] = u;
     }
     return -1;
 }

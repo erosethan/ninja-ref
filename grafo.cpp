@@ -104,7 +104,7 @@ void ObtenerCFCs(int n) {
 // Detecta los puentes y puntos de articulacion en
 // un grafo bidireccional. Indices de 0 a n - 1.
 
-Nodo puentes[MAXN]; // Resultado
+vector<int> puentes[MAXN]; // Resultado
 bool punto_art[MAXN]; // Resultado
 
 void PuntosArtPuentes_(int u, int p) {
@@ -112,6 +112,7 @@ void PuntosArtPuentes_(int u, int p) {
     low[u] = num[u] = ++numeracion;
     for (int i = 0; i < grafo[u].size(); ++i) {
         int v = grafo[u][i];
+        if(v == p) continue;
         if (!num[v]) {
             ++hijos;
             PuntosArtPuentes_(v, u);

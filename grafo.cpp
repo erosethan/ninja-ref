@@ -112,7 +112,7 @@ void PuntosArtPuentes_(int u, int p) {
     low[u] = num[u] = ++numeracion;
     for (int i = 0; i < grafo[u].size(); ++i) {
         int v = grafo[u][i];
-        if(v == p) continue;
+        if (v == p) continue;
         if (!num[v]) {
             ++hijos;
             PuntosArtPuentes_(v, u);

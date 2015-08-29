@@ -121,6 +121,57 @@ vector<Arista> EmparejaCostoMaxBipartito(
     return parejas;
 }
 
+
+int flow[MAXN][MAXN]; 
+int cap[MAXN][MAXN];
+int padre[MAXN];
+
+int ActualizaFlujo(int u, int& f) {
+    int p = padre[u];
+    if(p == u) return u;
+    f = min(f, cap[p][u] - flow[p][u]);
+    ActualizaFlujo(p, f);
+    flow[p][u] += f;
+    flow[u][p] -= f;
+}
+
+int AumentarFlujo(int s, int t, int n) {
+    fill(padre, padre + n, -1);
+    queue<int> q;
+    q.push(s);
+    padre[s] = s;
+    while(!q.empty()) {
+        int u = q.front();
+        q.pop();
+        if(u == t) break;
+        for(int i = 0; i < grafo[u].size(); ++i) {
+            int v = grafo[u][i];
+            if(flow[u][v] == cap[u][v])continue;
+            if(padre[v] != -1) {
+                padre[v] = u;
+                q.push(v);
+            }
+        }
+    }
+    if(padre[t] == -1)
+        return 0;
+    int flujo = INF;
+    ActualizaFlujo(t, flujo);
+    return flujo;
+}
+
+
+// Para (u, v) en la lista de adyacencia,
+// debe existir la arista(u, v) y
+// flow[u][v] = 0, flow[v][u] = cap[u][v]
+// y cap[v][u] = cap[u][v] 
+int MaximoFlujo(int s, int t, int n) {
+    int max_flujo = 0, f;
+    while(f = AumentarFlujo(s, t, n))
+        max_flujo += f;
+    return max_flujo;
+}
+
 int main() {
     return 0;
 }

@@ -259,8 +259,10 @@ vector<int> DijkstraLineal(int o, int n) {
             for (int i = 0; i < grafo_peso[u].size(); ++i) {
                 int v = grafo_peso[u][i].first;
                 int p = grafo_peso[u][i].second;
-                if (dist[u] + p < dist[v])
-                    q[(qi + p) % MAXP].push(v), ++total;
+                if (dist[u] + p < dist[v]) {
+                    ++total; q[(qi + p) % MAXP].push(v);
+                    dist[v] = dist[u] + p;
+                }
             }
         } else qi = (qi + 1) % MAXP;
     }

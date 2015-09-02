@@ -22,6 +22,7 @@ int CaminoIncremental(int u) {
         if (pareja[grafo[u][i]] == -1) 
             return pareja[grafo[u][i]] = u;
     for (int i = 0; i < grafo[u].size(); ++i) {
+        int v = grafo[u][i];
         if (visitado[pareja[v]]) continue;
         if (CaminoIncremental(pareja[v]) != -1)
             return pareja[v] = u;
@@ -121,55 +122,87 @@ vector<Arista> EmparejaCostoMaxBipartito(
     return parejas;
 }
 
+// Flujo maximo en un grafo dirigido mediante Edmonds-Karp O(VE^2).
+// Los nodos están indexados del 0 al n - 1. Para cada arista (u, v)
+// en el grafo debe existir la arista residual (v, u). Se debe cumplir
+// cap[u][v] = cap[v][u], flujo[u][v] = 0 y flujo[v][u] = cap[u][v].
 
-int flow[MAXN][MAXN]; 
-int cap[MAXN][MAXN];
 int padre[MAXN];
+int cap[MAXN][MAXN];
+int flujo[MAXN][MAXN]; 
 
-int ActualizaFlujo(int u, int& f) {
+int ActualizarFlujo(int u, int f) {
     int p = padre[u];
-    if(p == u) return u;
-    f = min(f, cap[p][u] - flow[p][u]);
-    ActualizaFlujo(p, f);
-    flow[p][u] += f;
-    flow[u][p] -= f;
+    if (p == u) return f;
+    f = ActualizarFlujo(p, min(
+        f, cap[p][u] - flujo[p][u]));
+    flujo[p][u] += f;
+    flujo[u][p] -= f;
+    return f;
 }
 
 int AumentarFlujo(int s, int t, int n) {
     fill(padre, padre + n, -1);
-    queue<int> q;
-    q.push(s);
-    padre[s] = s;
-    while(!q.empty()) {
+    queue<int> q; q.push(s); padre[s] = s;
+    while (!q.empty()) {
         int u = q.front();
-        q.pop();
-        if(u == t) break;
-        for(int i = 0; i < grafo[u].size(); ++i) {
+        q.pop(); if (u == t) break;
+        for (int i = 0; i < grafo[u].size(); ++i) {
             int v = grafo[u][i];
-            if(flow[u][v] == cap[u][v])continue;
-            if(padre[v] != -1) {
-                padre[v] = u;
-                q.push(v);
-            }
+            if (flujo[u][v] == cap[u][v] ||
+                padre[v] != -1) continue;
+            padre[v] = u, q.push(v);
         }
     }
-    if(padre[t] == -1)
-        return 0;
-    int flujo = INF;
-    ActualizaFlujo(t, flujo);
-    return flujo;
+    if (padre[t] == -1) return 0;
+    return ActualizarFlujo(t, INF);
 }
 
+int EdmondsKarp(int s, int t, int n) {
+    int flujo_maximo = 0, f;
+    while (f = AumentarFlujo(s, t, n))
+        flujo_maximo += f;
+    return flujo_maximo;
+}
 
-// Para (u, v) en la lista de adyacencia,
-// debe existir la arista(u, v) y
-// flow[u][v] = 0, flow[v][u] = cap[u][v]
-// y cap[v][u] = cap[u][v] 
-int MaximoFlujo(int s, int t, int n) {
-    int max_flujo = 0, f;
-    while(f = AumentarFlujo(s, t, n))
-        max_flujo += f;
-    return max_flujo;
+// Flujo maximo en un grafo dirigido mediante Dinic O(V^2E).
+// Los nodos están indexados del 0 al n - 1. Para cada arista (u, v)
+// en el grafo debe existir la arista residual (v, u). Se debe cumplir
+// cap[u][v] = cap[v][u], flujo[u][v] = 0 y flujo[v][u] = cap[u][v].
+
+int dist[MAXN];
+
+int FlujoBloqueante(int u, int t, int f) {
+    if (u == t) return f; int fluido = 0;
+    for (int i = 0; i < grafo[u].size(); ++i) {
+        int v = grafo[u][i];
+        if (dist[u] + 1 > dist[v]) continue;
+        int fv = FlujoBloqueante(v, t,
+            min(f - fluido, cap[u][v] - flujo[u][v]));
+        flujo[u][v] += fv; flujo[v][u] -= fv;
+        fluido += fv; if (fluido == f) break;
+    }
+    return fluido;
+}
+
+int Dinic(int s, int t, int n) {
+    int flujo_maximo = dist[t] = 0;
+    while (dist[t] < INF) {
+        fill(dist, dist + n, INF);
+        queue<int> q; q.push(s); dist[s] = 0;
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int i = 0; i < grafo[u].size(); ++i) {
+                int v = grafo[u][i];
+                if (flujo[u][v] == cap[u][v] ||
+                    dist[v] <= dist[u] + 1) continue;
+                dist[v] = dist[u] + 1, q.push(v);
+            }
+        }
+        if (dist[t] < INF) flujo_maximo +=
+            FlujoBloqueante(s, t, INF);
+    }
+    return flujo_maximo;
 }
 
 int main() {

@@ -111,10 +111,19 @@ struct Linea {
 
     Linea(Coord a_, Coord b_, Coord c_)
         : p(), q(), a(a_), b(b_), c(c_) {
-        // <comment>
-        c_ = abs(__gcd(a, b));
-        a /= c_, b /= c_;
-        // </comment>
+        if (Igual(a, 0)) {
+        	c /= -b; b = -1;
+        	p = Punto(0, -c / b);
+        	q = Punto(1, -c / b);
+        } else if (Igual(b, 0)) {
+        	c /= -a; a = -1;
+        	p = Punto(-c / a, 0);
+        	q = Punto(-c / a, 1);
+        } else {
+    		p = Punto(-c / a, 0);
+    		q = !Igual(c, 0)? Punto(0, -c / b):
+    			Punto(0, -(a + c) / b);
+    	} if (q < p) swap(p, q);
     }
 
     Linea(const Punto& p_, const Punto& q_)
@@ -221,7 +230,7 @@ bool InterseccionSegmentos(const Linea& s, const Linea& t) {
 // Obtener punto de interseccion entre lineas l y m
 Punto PuntoInterseccion(const Linea& l, const Linea& m) {
     if (LineasParalelas(l, m)) return Punto();
-    if (!l.a) return Punto((double)(l.c*m.b + m.c) / -m.a, l.c);
+    if (!Igual(l.a, 0)) return Punto((double)(l.c*m.b + m.c) / -m.a, l.c);
     double y = (double)(m.a*l.c - l.a*m.c) / (m.b*l.a - m.a*l.b);
     double x = (double)(l.c + l.b * y) / -l.a;
     return Punto(x, y);

@@ -201,11 +201,13 @@ Linea PerpendicularEnPunto(const Linea& l, const Punto& p) {
 }
 
 // Saber si dos rectas r y s se intersectan
+// ¡CUIDADO! Debe ajustarse para considerar lineas paralelas
 bool InterseccionRectas(const Linea& r, const Linea& s) {
     return !LineasParalelas(r, s);
 }
 
 // Saber si una recta r y un segmento s se intersectan
+// ¡CUIDADO! Debe ajustarse para considerar lineas paralelas
 bool IntersecRectaSegmen(const Linea& r, const Linea& s) {
     int t1 = ManoDerecha(r.p, r.q, s.p);
     int t2 = ManoDerecha(r.p, r.q, s.q);
@@ -213,6 +215,7 @@ bool IntersecRectaSegmen(const Linea& r, const Linea& s) {
 }
 
 // Saber si dos segmentos s y t se intersectan
+// ¡CUIDADO! Debe ajustarse para considerar lineas paralelas
 bool InterseccionSegmentos(const Linea& s, const Linea& t) {
     int t1 = ManoDerecha(s.p, s.q, t.p);
     int t2 = ManoDerecha(s.p, s.q, t.q);

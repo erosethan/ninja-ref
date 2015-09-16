@@ -122,10 +122,18 @@ vector<Arista> EmparejaCostoMaxBipartito(
     return parejas;
 }
 
-// Flujo maximo en un grafo dirigido mediante Edmonds-Karp O(VE^2).
-// Los nodos están indexados del 0 al n - 1. Para cada arista (u, v)
-// en el grafo debe existir la arista residual (v, u). Se debe cumplir
-// cap[u][v] = cap[v][u], flujo[u][v] = 0 y flujo[v][u] = cap[u][v].
+// Funcion AgregarArista para asegurar las condiciones necesarias
+// para llamar a las funciones de flujo maximo Edmonds-Karp y Dinic.
+
+void AgregaArista(int u, int v, int c){
+    grafo[u].push_back(v);
+    grafo[v].push_back(u);
+    cap[u][v] += c; cap[v][u] += c;
+    flujo[v][u] += c; // Para aristas dirigidas!
+}
+
+// Flujo maximo en un grafo mediante Edmonds-Karp en O(VE^2).
+// Nodos indexados del 0 al n - 1. Vease la funcion AgregarArista.
 
 int padre[MAXN];
 int cap[MAXN][MAXN];
@@ -165,10 +173,8 @@ int EdmondsKarp(int s, int t, int n) {
     return flujo_maximo;
 }
 
-// Flujo maximo en un grafo dirigido mediante Dinic O(V^2E).
-// Los nodos están indexados del 0 al n - 1. Para cada arista (u, v)
-// en el grafo debe existir la arista residual (v, u). Se debe cumplir
-// cap[u][v] = cap[v][u], flujo[u][v] = 0 y flujo[v][u] = cap[u][v].
+// Flujo maximo en un grafo mediante algoritmo de Dinic en O(V^2E).
+// Nodos indexados del 0 al n - 1. Vease la funcion AgregarArista.
 
 int dist[MAXN];
 
@@ -203,15 +209,6 @@ int Dinic(int s, int t, int n) {
             FlujoBloqueante(s, t, INF);
     }
     return flujo_maximo;
-}
-
-void AgregaArista(int u,int v,int p){
-    grafo[u].push_back(v);
-    grafo[v].push_back(u);
-    cap[u][v] = p;
-    cap[v][u] = p;
-    flujo[v][u] = p;
-    flujo[u][v] = 0;
 }
 
 int main() {

@@ -205,6 +205,15 @@ int Dinic(int s, int t, int n) {
     return flujo_maximo;
 }
 
+void AgregaArista(int u,int v,int p){
+    grafo[u].push_back(v);
+    grafo[v].push_back(u);
+    cap[u][v] = p;
+    cap[v][u] = p;
+    flujo[v][u] = p;
+    flujo[u][v] = 0;
+}
+
 int main() {
     return 0;
 }

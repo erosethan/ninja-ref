@@ -111,17 +111,17 @@ struct Linea {
 
     Linea(Coord a_, Coord b_, Coord c_)
         : p(), q(), a(a_), b(b_), c(c_) {
-        if (Equal(a, 0)) {
+        if (Igual(a, 0)) {
             c /= -b; b = -1;
-            p = Point(0, c);
-            q = Point(1, c);
-        } else if (Equal(b, 0)) {
+            p = Punto(0, c);
+            q = Punto(1, c);
+        } else if (Igual(b, 0)) {
             c /= -a; a = -1;
-            p = Point(c, 0);
-            q = Point(c, 1);
+            p = Punto(c, 0);
+            q = Punto(c, 1);
         } else {
-            p = Point(-c/a, 0);
-            q = Point(-(b+c)/a, 1);
+            p = Punto(-c/a, 0);
+            q = Punto(-(b+c)/a, 1);
         } if (q < p) swap(p, q);
     }
 

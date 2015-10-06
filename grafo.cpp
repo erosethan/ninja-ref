@@ -243,7 +243,7 @@ vector<int> Dijkstra(int o, int n) {
 // Dijkstra version lineal. Nodos indexados del 0 al n - 1.
 // ¡Peligro! Recuerden cuidar el peso maximo de las aristas.
 
-const int MAXP = 100; // Peso maximo
+const int MAXP = 100 + 1; // Peso maximo + 1
 
 vector<int> DijkstraLineal(int o, int n) {
     vector<int> dist(n, INF);

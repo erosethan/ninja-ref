@@ -306,9 +306,9 @@ vector<PesoArista> Kruskal(int n) {
     return mst;
 }
 
-// Algoritmo de Bellman Ford. Nodos indexados de 0 a n - 1.
+// Algoritmo de Bellman-Ford. Nodos indexados de 0 a n - 1.
 
-vector<int> Bellmanford(int o, int n) {
+vector<int> BellmanFord(int o, int n) {
     vector<int> dist(n, INF); dist[o] = 0;
     for (int i = 0; i < n; ++i) {
         for (int u = 0; u < n; ++u) {

@@ -125,6 +125,9 @@ vector<Arista> EmparejaCostoMaxBipartito(
 // Funcion AgregarArista para asegurar las condiciones necesarias
 // para llamar a las funciones de flujo maximo Edmonds-Karp y Dinic.
 
+int cap[MAXN][MAXN];
+int flujo[MAXN][MAXN];
+
 void AgregarArista(int u, int v, int c){
     grafo[u].push_back(v);
     grafo[v].push_back(u);
@@ -136,8 +139,6 @@ void AgregarArista(int u, int v, int c){
 // Nodos indexados del 0 al n - 1. Vease la funcion AgregarArista.
 
 int padre[MAXN];
-int cap[MAXN][MAXN];
-int flujo[MAXN][MAXN]; 
 
 int ActualizarFlujo(int u, int f) {
     int p = padre[u];

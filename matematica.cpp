@@ -10,7 +10,8 @@ bool Igual(double a, double b) {
     return fabs(a - b) < ERROR;
 }
 
-// Realiza eliminacion Gaussiana en una matriz
+// Realiza eliminacion Gaussiana en una matriz.
+
 void EliminaGaussiana(Matriz& m) {
     for (int i = 0; i < m.size(); ++i) {
         int fila_mayor = i;
@@ -30,7 +31,8 @@ void EliminaGaussiana(Matriz& m) {
     }
 }
 
-// Exponenciacion binaria a^n mod m
+// Exponenciacion binaria a^n mod m.
+
 lli Exponenciar(lli a, lli n, lli m) {
     lli res = 1, p = a;
     for (; n; n >>= 1) {
@@ -41,7 +43,8 @@ lli Exponenciar(lli a, lli n, lli m) {
     return res;
 }
 
-// Multiplicacion binaria a*b mod m
+// Multiplicacion binaria a*b mod m.
+
 lli Multiplicar(lli a, lli b, lli m) {
     lli res = 0, p = a;
     for (; b; b >>= 1) {

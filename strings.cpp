@@ -16,6 +16,8 @@ void BucketSort(vector<int>& sa,
     swap(sa, tmp_sa);
 }
 
+// Recuerden poner '$' al final de la cadena.
+
 vector<int> SuffixArray(const string& str) {
     int ranks = 255;
     vector<int> sa(str.size());

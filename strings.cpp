@@ -51,28 +51,25 @@ vector<int> SuffixArray(const string& str) {
     return sa;
 }
 
-vector<int> computeLCP( const vector<int>& SA, const string& str ){
-	int i, L,  n = SA.size();
-	vector<int> LCP (n , 0);
-	vector<int> PLCP (n , 0);
-	vector<int> Phi (n , 0);
-	
-	Phi[SA[0]] = -1;
-	for(i = 1; i < n; i++)
-		Phi[SA[i]] = SA[i-1];
-		
-	for( i = L = 0; i < n; i++ ){
-		if (Phi[i] == -1){
-			PLCP[i] = 0;
-			continue;
-		}
-		while (str[i + L] == str[Phi[i] + L]) L++;
-		PLCP[i] = L;
-		L = max(L-1, 0);
-	}
-	for (i = 0; i < n; i++)
-		LCP[i] = PLCP[SA[i]];
-	return LCP;
+vector<int> LCP(const string& str,
+    const vector<int>& sa) {
+
+    vector<int> lcp(str.size());
+    vector<int> plcp(str.size());
+    vector<int> phi(str.size(), -1);
+    for(int i = 1; i < str.size(); ++i)
+        phi[sa[i]] = sa[i - 1];
+    
+    int len = 0;
+    for(int i = 0; i < str.size(); ++i) {
+        if (phi[i] == -1) continue;
+        for (; str[phi[i] + len] ==
+               str[i + len]; ++len) {}
+        plcp[i] = len; len = max(len-1, 0);
+    }
+    for (int i = 0; i < str.size(); ++i)
+        lcp[i] = plcp[sa[i]];
+    return lcp;
 }
 
 int main() {

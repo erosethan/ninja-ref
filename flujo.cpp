@@ -9,6 +9,8 @@ const int MAXN = 100;
 
 vector<int> grafo[MAXN];
 
+// EMPAREJAMIENTO BIPARTITO
+
 // Maximo emparejamiento en grafo bipartito. Nodos indexados
 // de 0 a n - 1. Recibe dos parametros: Un vector con los indices
 // del conjunto izquierdo y otro con los indices del derecho.
@@ -122,6 +124,8 @@ vector<Arista> EmparejaCostoMaxBipartito(
     return parejas;
 }
 
+// FLUJO MAXIMO
+
 // Funcion AgregarArista para asegurar las condiciones necesarias
 // para llamar a las funciones de flujo maximo Edmonds-Karp y Dinic.
 
@@ -182,12 +186,11 @@ int dist[MAXN];
 int FlujoBloqueante(int u, int t, int f) {
     if (u == t) return f; int fluido = 0;
     for (int i = 0; i < grafo[u].size(); ++i) {
-        int v = grafo[u][i];
+        if (fluido == f) break; int v = grafo[u][i];
         if (dist[u] + 1 > dist[v]) continue;
         int fv = FlujoBloqueante(v, t,
             min(f - fluido, cap[u][v] - flujo[u][v]));
-        flujo[u][v] += fv; flujo[v][u] -= fv;
-        fluido += fv; if (fluido == f) break;
+        flujo[u][v] += fv, flujo[v][u] -= fv, fluido += fv;
     }
     return fluido;
 }
@@ -204,6 +207,82 @@ int Dinic(int s, int t, int n) {
                 if (flujo[u][v] == cap[u][v] ||
                     dist[v] <= dist[u] + 1) continue;
                 dist[v] = dist[u] + 1, q.push(v);
+            }
+        }
+        if (dist[t] < INF) flujo_maximo +=
+            FlujoBloqueante(s, t, INF);
+    }
+    return flujo_maximo;
+}
+
+// Algoritmo de Dinic para flujo maximo con memoria optimizada.
+// Prefieran esta version unicamente cuando los nodos sean > 5,000.
+// Nodos indexados de 0 a n - 1. Esta version es menos eficiente.
+
+struct AristaFlujo {
+    int dest, flujo, cap;
+    AristaFlujo* residual;
+
+    AristaFlujo(int d, int f, int c)
+        : dest(d), flujo(f), cap(c) {}
+
+    void AumentarFlujo(int f) {
+        residual->flujo -= f;
+        this->flujo += f;
+    }
+};
+
+vector<AristaFlujo*> grafo_flujo[MAXN];
+
+void AgregarArista(int u, int v, int c){
+    AristaFlujo* uv = new AristaFlujo(v, 0, c);
+    AristaFlujo* vu = new AristaFlujo(u, 0, c);
+    uv->residual = vu, vu->residual = uv;
+    grafo_flujo[u].push_back(uv);
+    grafo_flujo[v].push_back(vu);
+    vu->flujo = c; // Solo en dirigidas!
+}
+
+// LimpiarGrafo es importante para liberar la memoria
+// que ocupan las aristas, NO SE OLVIDEN DE USARLA!
+
+void LimpiarGrafo(int n) {
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < grafo_flujo[i].size(); ++j)
+            delete grafo_flujo[i][j];
+        grafo_flujo[i].clear();
+    }
+}
+
+int dist[MAXN];
+
+int FlujoBloqueante(int u, int t, int f) {
+    if (u == t) return f; int fluido = 0;
+    for (int i = 0; i < grafo_flujo[u].size(); ++i) {
+        if (fluido == f) break;
+        AristaFlujo* v = grafo_flujo[u][i];
+        if (dist[u] + 1 == dist[v->dest]) {
+            int fv = FlujoBloqueante(v->dest, t,
+                min(f - fluido, v->cap - v->flujo));
+            v->AumentarFlujo(fv), fluido += fv;
+        }
+    }
+    return fluido;
+}
+
+int Dinic(int s, int t, int n) {
+    int flujo_maximo = dist[t] = 0;
+    while (dist[t] < INF) {
+        fill(dist, dist + n, INF);
+        queue<int> q; q.push(s); dist[s] = 0;
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int i = 0; i < grafo_flujo[u].size(); ++i) {
+                AristaFlujo* v = grafo_flujo[u][i];
+                if (dist[v->dest] < INF) continue;
+                if (v->flujo == v->cap) continue;
+                dist[v->dest] = dist[u] + 1;
+                q.push(v->dest);
             }
         }
         if (dist[t] < INF) flujo_maximo +=

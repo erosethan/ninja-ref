@@ -384,25 +384,5 @@ Arista FlujoMaxCostoMin(int s, int t, int n, int k = -1) {
 }
 
 int main() {
-    int n, m, a, b, c, d, k;
-    while (scanf("%d%d", &n, &m) != EOF) {
-        LimpiarGrafo(n);
-        vector<int> costos;
-        vector<int> nodo1, nodo2;
-        for (int i = 0; i < m; ++i) {
-            scanf("%d%d%d", &a, &b, &c);
-            nodo1.push_back(--a);
-            nodo2.push_back(--b);
-            costos.push_back(c);
-        }
-        scanf("%d%d", &d, &k);
-        for (int i = 0; i < m; ++i) {
-            AgregarArista(nodo1[i], nodo2[i], k, costos[i]);
-            AgregarArista(nodo2[i], nodo1[i], k, costos[i]);
-        }
-        Arista mcmf = FlujoMaxCostoMin(0, n - 1, n, d);
-        if (mcmf.first < d) puts("Impossible.");
-        else printf("%d\n", mcmf.second);
-    }
     return 0;
 }

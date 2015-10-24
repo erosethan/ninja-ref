@@ -5,7 +5,7 @@ using namespace std;
 typedef pair<int, int> Arista;
 
 const int INF = 1 << 30;
-const int MAXN = 100;
+const int MAXN = 200;
 
 vector<int> grafo[MAXN];
 
@@ -49,8 +49,9 @@ vector<Arista> MaxEmparejamientoBipartito(
 
 // Emparejamiento de costo maximo en grafo bipartito ponderado.
 // Nodos con indice del 0 al n - 1. Recibe los mismos parametros
-// que MaxEmparejamientoBipartito. Utiliza algoritmo hungaro.
-// Cuidado: Se ocupa una matriz de costo entre nodos.
+// que MaxEmparejamientoBipartito. Utiliza el algoritmo hungaro.
+// CUIDADO: Se ocupa una matriz de costo entre nodos y se debe
+// asegurar que existe la misma cantidad de nodos en l y r.
 
 int slack[MAXN];
 int retorno[MAXN];
@@ -190,7 +191,8 @@ int FlujoBloqueante(int u, int t, int f) {
         if (dist[u] + 1 > dist[v]) continue;
         int fv = FlujoBloqueante(v, t,
             min(f - fluido, cap[u][v] - flujo[u][v]));
-        flujo[u][v] += fv, flujo[v][u] -= fv, fluido += fv;
+        flujo[u][v] += fv, fluido += fv;
+        flujo[v][u] -= fv;
     }
     return fluido;
 }
@@ -220,27 +222,36 @@ int Dinic(int s, int t, int n) {
 // Nodos indexados de 0 a n - 1. Esta version es menos eficiente.
 
 struct AristaFlujo {
-    int dest, flujo, cap;
+    int flujo, cap;
+    int dst, peso, npeso;
     AristaFlujo* residual;
 
     AristaFlujo(int d, int f, int c)
-        : dest(d), flujo(f), cap(c) {}
+        : dst(d), flujo(f), cap(c),
+          peso(0), npeso(0) {}
 
-    void AumentarFlujo(int f) {
+    int AumentarFlujo(int f) {
         residual->flujo -= f;
         this->flujo += f;
+        return peso * f;
     }
 };
 
 vector<AristaFlujo*> grafo_flujo[MAXN];
 
-void AgregarArista(int u, int v, int c){
+// Para agregar aristas bidireccionales basta con agregar dos
+// aristas dirigidas, una por cada sentido de la bidireccional,
+// ambas con exactamente la misma capacidad y peso.
+
+void AgregarArista(int u, int v, int c, int p = 0){
     AristaFlujo* uv = new AristaFlujo(v, 0, c);
-    AristaFlujo* vu = new AristaFlujo(u, 0, c);
+    AristaFlujo* vu = new AristaFlujo(u, c, c);
     uv->residual = vu, vu->residual = uv;
     grafo_flujo[u].push_back(uv);
     grafo_flujo[v].push_back(vu);
-    vu->flujo = c; // Solo en dirigidas!
+
+    uv->peso = uv->npeso =  p; // Solo en ponderadas!
+    vu->peso = vu->npeso = -p; // Solo en ponderadas!
 }
 
 // LimpiarGrafo es importante para liberar la memoria
@@ -254,15 +265,13 @@ void LimpiarGrafo(int n) {
     }
 }
 
-int dist[MAXN];
-
-int FlujoBloqueante(int u, int t, int f) {
+int FlujoBloqueanteOpt(int u, int t, int f) {
     if (u == t) return f; int fluido = 0;
     for (int i = 0; i < grafo_flujo[u].size(); ++i) {
         if (fluido == f) break;
         AristaFlujo* v = grafo_flujo[u][i];
-        if (dist[u] + 1 == dist[v->dest]) {
-            int fv = FlujoBloqueante(v->dest, t,
+        if (dist[u] + 1 == dist[v->dst]) {
+            int fv = FlujoBloqueanteOpt(v->dst, t,
                 min(f - fluido, v->cap - v->flujo));
             v->AumentarFlujo(fv), fluido += fv;
         }
@@ -270,7 +279,7 @@ int FlujoBloqueante(int u, int t, int f) {
     return fluido;
 }
 
-int Dinic(int s, int t, int n) {
+int DinicOpt(int s, int t, int n) {
     int flujo_maximo = dist[t] = 0;
     while (dist[t] < INF) {
         fill(dist, dist + n, INF);
@@ -279,18 +288,121 @@ int Dinic(int s, int t, int n) {
             int u = q.front(); q.pop();
             for (int i = 0; i < grafo_flujo[u].size(); ++i) {
                 AristaFlujo* v = grafo_flujo[u][i];
-                if (dist[v->dest] < INF) continue;
+                if (dist[v->dst] < INF) continue;
                 if (v->flujo == v->cap) continue;
-                dist[v->dest] = dist[u] + 1;
-                q.push(v->dest);
+                dist[v->dst] = dist[u] + 1;
+                q.push(v->dst);
             }
         }
         if (dist[t] < INF) flujo_maximo +=
-            FlujoBloqueante(s, t, INF);
+            FlujoBloqueanteOpt(s, t, INF);
     }
     return flujo_maximo;
 }
 
+// FLUJO MAXIMO DE COSTO MINIMO
+
+// Costo minimo para pasar k unidades de flujo del nodo s al t.
+// Utiliza algoritmo de Edmonds-Karp con Bellman-Ford O(V^2E^2).
+// Nodos indexados de 0 a n - 1. Para calcular el flujo maximo
+// de costo minimo llamen a la funcion sin el parametro k.
+
+void RecalcularCosto(const vector<int>& pi) {
+    for (int u = 0; u < pi.size(); ++u) {
+        for (int i = 0; i < grafo_flujo[u].size(); ++i) {
+            AristaFlujo* v = grafo_flujo[u][i];
+            v->npeso = v->npeso + pi[u] - pi[v->dst];
+        }
+    }
+}
+
+Arista prev[MAXN];
+
+Arista ActFlujoCostoMin(int u, int f) {
+    int p = prev[u].first;
+    int i = prev[u].second;
+    if (p == -1) return Arista(f, 0);
+    AristaFlujo* pu = grafo_flujo[p][i];
+
+    Arista res = ActFlujoCostoMin(
+        p, min(f, pu->cap - pu->flujo));
+    res.second += pu->AumentarFlujo(
+        res.first); return res;
+}
+
+Arista AumentarFlujoCostoMin(int s, int t, int n, int f) {
+    vector<int> dist(n, INF);
+    fill(prev, prev + n, Arista(-1, -1));
+    priority_queue<Arista, vector<Arista>,
+                   greater<Arista> > pq;
+    pq.push(Arista(0, s)); dist[s] = 0;
+    
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        int p = pq.top().first; pq.pop();
+        if (dist[u] < p) continue;        
+        for (int i = 0; i < grafo_flujo[u].size(); ++i) {
+            AristaFlujo* v = grafo_flujo[u][i];
+            if (v->flujo == v->cap) continue;
+            if (dist[u] + v->npeso < dist[v->dst]) {
+                dist[v->dst] = dist[u] + v->npeso;
+                pq.push(Arista(dist[v->dst], v->dst));
+                prev[v->dst].second = i;
+                prev[v->dst].first = u;
+            }
+        }
+    }
+    if (dist[t] == INF)
+        return Arista(0, 0);
+    RecalcularCosto(dist);
+    return ActFlujoCostoMin(t, f);
+}
+
+Arista FlujoMaxCostoMin(int s, int t, int n, int k = -1) {
+    vector<int> dist(n, INF); dist[s] = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int u = 0; u < n; ++u) {
+            if (dist[u] == INF) continue;
+            for (int j = 0; j < grafo_flujo[u].size(); ++j) {
+                AristaFlujo* v = grafo_flujo[u][j];
+                if (v->flujo < v->cap)  dist[v->dst] = min(
+                    dist[v->dst], dist[u] + v->npeso);
+            }
+        }
+    }
+    RecalcularCosto(dist);
+
+    Arista flujo_costo(0, 0);
+    while (flujo_costo.first < k || k == -1) {
+        Arista fc = AumentarFlujoCostoMin(s, t, n,
+            (k == -1)? INF: k - flujo_costo.first);
+        flujo_costo.second += fc.second;
+        flujo_costo.first += fc.first;
+        if (!fc.first) break;
+    }
+    return flujo_costo;
+}
+
 int main() {
+    int n, m, a, b, c, d, k;
+    while (scanf("%d%d", &n, &m) != EOF) {
+        LimpiarGrafo(n);
+        vector<int> costos;
+        vector<int> nodo1, nodo2;
+        for (int i = 0; i < m; ++i) {
+            scanf("%d%d%d", &a, &b, &c);
+            nodo1.push_back(--a);
+            nodo2.push_back(--b);
+            costos.push_back(c);
+        }
+        scanf("%d%d", &d, &k);
+        for (int i = 0; i < m; ++i) {
+            AgregarArista(nodo1[i], nodo2[i], k, costos[i]);
+            AgregarArista(nodo2[i], nodo1[i], k, costos[i]);
+        }
+        Arista mcmf = FlujoMaxCostoMin(0, n - 1, n, d);
+        if (mcmf.first < d) puts("Impossible.");
+        else printf("%d\n", mcmf.second);
+    }
     return 0;
 }

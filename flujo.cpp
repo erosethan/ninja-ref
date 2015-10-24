@@ -217,9 +217,8 @@ int Dinic(int s, int t, int n) {
     return flujo_maximo;
 }
 
-// Algoritmo de Dinic para flujo maximo con memoria optimizada.
-// Prefieran esta version unicamente cuando los nodos sean > 5,000.
-// Nodos indexados de 0 a n - 1. Esta version es menos eficiente.
+// Definiciones y funciones para problemas de flujo sin
+// hacer uso de matrices de adyacencia. Optimiza memoria!
 
 struct AristaFlujo {
     int flujo, cap;
@@ -265,6 +264,10 @@ void LimpiarGrafo(int n) {
     }
 }
 
+// Algoritmo de Dinic para flujo maximo con memoria optimizada.
+// Prefieran esta version unicamente cuando los nodos sean > 5,000.
+// Nodos indexados de 0 a n - 1. Esta version es menos eficiente.
+
 int FlujoBloqueanteOpt(int u, int t, int f) {
     if (u == t) return f; int fluido = 0;
     for (int i = 0; i < grafo_flujo[u].size(); ++i) {
@@ -303,9 +306,11 @@ int DinicOpt(int s, int t, int n) {
 // FLUJO MAXIMO DE COSTO MINIMO
 
 // Costo minimo para pasar k unidades de flujo del nodo s al t.
-// Utiliza algoritmo de Edmonds-Karp con Bellman-Ford O(V^2E^2).
+// Utiliza Edmonds-Karp y Dijkstra con potenciales O(VElogV * flow).
 // Nodos indexados de 0 a n - 1. Para calcular el flujo maximo
 // de costo minimo llamen a la funcion sin el parametro k.
+
+Arista prev[MAXN];
 
 void RecalcularCosto(const vector<int>& pi) {
     for (int u = 0; u < pi.size(); ++u) {
@@ -315,8 +320,6 @@ void RecalcularCosto(const vector<int>& pi) {
         }
     }
 }
-
-Arista prev[MAXN];
 
 Arista ActFlujoCostoMin(int u, int f) {
     int p = prev[u].first;

@@ -310,7 +310,7 @@ int DinicOpt(int s, int t, int n) {
 // Nodos indexados de 0 a n - 1. Para calcular el flujo maximo
 // de costo minimo llamen a la funcion sin el parametro k.
 
-Arista prev[MAXN];
+Arista prv[MAXN];
 
 void RecalcularCosto(const vector<int>& pi) {
     for (int u = 0; u < pi.size(); ++u) {
@@ -322,8 +322,8 @@ void RecalcularCosto(const vector<int>& pi) {
 }
 
 Arista ActFlujoCostoMin(int u, int f) {
-    int p = prev[u].first;
-    int i = prev[u].second;
+    int p = prv[u].first;
+    int i = prv[u].second;
     if (p == -1) return Arista(f, 0);
     AristaFlujo* pu = grafo_flujo[p][i];
 
@@ -335,7 +335,7 @@ Arista ActFlujoCostoMin(int u, int f) {
 
 Arista AumentarFlujoCostoMin(int s, int t, int n, int f) {
     vector<int> dist(n, INF);
-    fill(prev, prev + n, Arista(-1, -1));
+    fill(prv, prv + n, Arista(-1, -1));
     priority_queue<Arista, vector<Arista>,
                    greater<Arista> > pq;
     pq.push(Arista(0, s)); dist[s] = 0;
@@ -350,8 +350,8 @@ Arista AumentarFlujoCostoMin(int s, int t, int n, int f) {
             if (dist[u] + v->npeso < dist[v->dst]) {
                 dist[v->dst] = dist[u] + v->npeso;
                 pq.push(Arista(dist[v->dst], v->dst));
-                prev[v->dst].second = i;
-                prev[v->dst].first = u;
+                prv[v->dst].second = i;
+                prv[v->dst].first = u;
             }
         }
     }

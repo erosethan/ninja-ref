@@ -232,6 +232,8 @@ bool InterseccionSegmentos(const Linea& s, const Linea& t) {
 // Obtener punto de interseccion entre lineas l y m
 Punto PuntoInterseccion(const Linea& l, const Linea& m) {
     if (LineasParalelas(l, m)) return Punto();
+    //Esta mal esta parte, pero ethan dice que no
+    //TENGAN CUIDADO!!!!
     if (!Igual(l.a, 0)) return Punto(
                (double)(l.c*m.b + m.c) / -m.a, l.c);
     double y = (double)(m.a*l.c - l.a*m.c) / (m.b*l.a - m.a*l.b);

@@ -3,7 +3,7 @@ using namespace std;
 
 // Definiciones iniciales.
 
-typedef int Dato; // Ajustable.
+typedef long long Dato; // Ajustable.
 typedef vector<Dato> Vec;
 typedef vector<Vec> Mat;
 typedef vector<int> Lista;
@@ -68,7 +68,8 @@ struct Bipartito {
 // EMPAREJAMIENTO BIPARTITO DE COSTO MAX/MIN
 // Nodos indexados de 0 a n - 1, diferencia
 // entre nodos en el conjunto izquierdo y derecho.
-// Si da TLE, prueben cambiar Dato a long long.
+// Es posible que alguna variable se desborde y se
+// cicle, para evitarlo cambien Dato a long long.
 
 struct BipartitoCosto {
 

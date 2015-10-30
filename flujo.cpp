@@ -18,8 +18,8 @@ const Dato INF = 1 << 30;
 struct Bipartito {
 
     int n;
+    Lista pareja;
     vector<bool> lado;
-    vector<int> pareja;
     vector<bool> visitado;
     vector<Lista> aristas;
 
@@ -65,82 +65,90 @@ struct Bipartito {
 };
 
 
-// EMPAREJAMIENTO BIPARTITO DE COSTO MAXIMO
-// Nodos indexados de 0 a n - 1.
-/*
+// EMPAREJAMIENTO BIPARTITO DE COSTO MAX/MIN
+// Nodos indexados de 0 a n - 1, diferencia
+// entre nodos a la izquierda y derecha.
+
 struct BipartitoCosto {
 
+    int n, s;
+    Mat costo;
+    Vec slack, etiqueta;
+    Lista pareja, retorno;
+    vector<bool> visitado;
 
-    int slack[MAXN];
-    int retorno[MAXN];
-    int etiqueta[MAXN];
-    int costo[MAXN][MAXN];
+    // Emparejamiento de costo maximo S =  1
+    // Emparejamiento de costo minimo S = -1
 
-    vector<Par> MaxEmparejamiento() {
-        // Si l.size() != r.size() KABOOM!
-        assert(l.size() == r.size());
+    BipartitoCosto(int N, int S = 1)
+	: costo(N, Vec(N, INF * S)), s(S),
+          slack(2*N), etiqueta(2*N), pareja(2*N),
+          retorno(2*N), visitado(2*N), n(N) {}
 
-        fill(pareja, pareja + n, -1);
-        fill(etiqueta, etiqueta + n, 0);
-        for (int i = 0; i < l.size(); ++i)
-            for (int j = 0; j < r.size(); ++j)
-                etiqueta[l[i]] = max(etiqueta[l[i]],
-                    costo[l[i]][r[j]]);
+    void AgregarArista(int u, int v, int c) {
+        costo[u][v] = costo[v][u] = c * s;
+    }
+
+    vector<Par> MejorEmparejamiento() {
+
+        fill(pareja.begin(), pareja.end(), -1);
+        fill(etiqueta.begin(), etiqueta.end(), 0);
+        for (int i = 0; i < n; ++i) for (int j = 0; j < n; ++j)
+            etiqueta[i] = max(etiqueta[i], costo[i][j]);
                 
-        for (int i = 0; i < l.size(); ++i) {
-            for (int j = 0; j < r.size(); ++j)
-                slack[r[j]] = -costo[l[i]][r[j]] +
-                    etiqueta[l[i]] + etiqueta[r[j]];
-            fill(visitado, visitado + n, false);
-            fill(retorno, retorno + n, l[i]);
-            visitado[l[i]] = true;
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j)
+                slack[j + n] = etiqueta[i] +
+                    etiqueta[j + n] - costo[i][j];
+            fill(visitado.begin(), visitado.end(), false);
+            fill(retorno.begin(), retorno.end(), i);
+            visitado[i] = true;
             
             bool emparejado = false;
             for (int j = 0; !emparejado; ++j) {
-                int t = 0; for (; t < r.size(); ++t) {
-                    if (visitado[r[t]]) continue;
-                    if (!slack[r[t]]) break;
+                int t = n; for (; t < 2 * n; ++t) {
+                    if (visitado[t]) continue;
+                    if (!slack[t]) break;
                 }
-                if (t < r.size()) {
-                    visitado[t = r[t]] = true;
+                if (t < 2 * n) {
+                    visitado[t] = true;
                     if (pareja[t] == -1) {
                         emparejado = true;
                         for (int p; ; t = p) {
                             pareja[t] = retorno[t];
                             p = pareja[retorno[t]];
                             pareja[retorno[t]] = t;
-                            if (retorno[t] == l[i]) break;
+                            if (retorno[t] == i) break;
                         }
                     } else {
                         visitado[t = pareja[t]] = true;
-                        for (int k = 0; k < r.size(); ++k) {
-                            int new_slack = etiqueta[t] +
-                                etiqueta[r[k]] - costo[t][r[k]];
-                            if (new_slack < slack[r[k]]) {
-                                slack[r[k]] = new_slack;
-                                retorno[r[k]] = t;
+                        for (int k = 0; k < n; ++k) {
+                            Dato new_slack = etiqueta[t] +
+                                etiqueta[k + n] - costo[t][k];
+                            if (new_slack < slack[k + n]) {
+                                slack[k + n] = new_slack;
+                                retorno[k + n] = t;
                             }
                         }
                     }
                 } else {
-                    int d = INF;
-                    for (int k = 0; k < r.size(); ++k)
-                        if (slack[r[k]]) d = min(d, slack[r[k]]);
-                    for (int k = 0; k < l.size(); ++k)
-                        if (visitado[l[k]]) etiqueta[l[k]] -= d;
-                    for (int k = 0; k < r.size(); ++k)
-                        if (!visitado[r[k]]) slack[r[k]] -= d;
-                        else etiqueta[r[k]] += d;
+                    Dato d = INF;
+                    for (int k = n; k < 2 * n; ++k)
+			if (slack[k]) d = min(d, slack[n]);
+                    for (int k = 0; k < n; ++k)
+                        if (visitado[k]) etiqueta[k] -= d;
+                    for (int k = n; k < 2 * n; ++k)
+                        if (!visitado[k]) slack[k] -= d;
+                        else etiqueta[k] += d;
                 }
             }
         }
         vector<Par> pares;
         for (int i = 0; i < n; ++i)
-            if (lado[i]) pares.push_back(
-                Par(i, pareja[i]));
-        return pares;
+            pares.push_back(Par(i, pareja[i]));
+        return pares; // Parejas formadas.
     }
-};*/
+};
 
 // FLUJO MAXIMO
 // Nodos indexados de 0 a n - 1.
@@ -148,8 +156,8 @@ struct BipartitoCosto {
 struct Flujo {
 
     int n;
+    Lista padre;
     Mat cap, flujo;
-    vector<int> padre;
     vector<Dato> dist;
     vector<Lista> aristas;
 

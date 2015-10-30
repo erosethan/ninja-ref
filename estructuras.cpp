@@ -1,6 +1,70 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+const int INF = 1 << 30;
+
+// Segment Tree version dinamica. Para generar el
+// arbol completo deben llamar a la funcion Construir.
+// CUIDADO: Para usarlo deben especificar el tipo de
+// dato a utilizar; SegTree<int> por ejemplo.
+
+template<class T>
+struct SegTree {
+
+    T dato; int i, d;
+    SegTree* izq, *der;
+
+    SegTree(int I, int D)
+        : izq(NULL), der(NULL),
+          i(I), d(D), dato() {}
+    
+    ~SegTree() {
+        if (izq) delete izq;
+        if (der) delete der;
+    }
+    
+    void Construir() {
+        if (i == d) return;
+        int m = (i + d) >> 1;
+        izq = new SegTree(i, m);
+        der = new SegTree(m + 1, d);
+        dato = izq->dato + der->dato;
+    }
+    
+    T Actualizar(int a, T v) {
+        if (a < i || d < a) return dato;
+        if (a == i && d == a) return dato = v;
+        if (!izq) {
+            int m = (i + d) >> 1;
+            izq = new SegTree(i, m);
+            der = new SegTree(m + 1, d);
+        }
+        return dato = izq->Actualizar(a, v) +
+                      der->Actualizar(a, v);
+    }
+    
+    T Query(int a, int b) {
+        if (b < i || d < a) return T();
+        if (a <= i && d <= b) return dato;
+        return izq? izq->Query(a, b) + 
+                    der->Query(a, b): T();
+    }
+};
+
+// A continuación se ejemplifica como sobrecargar
+// el operador + dentro de una estructura para poder
+// reutilizar el codigo del Segment Tree facilmente.
+// El ejemplo sobrecarga el + por la funcion de maximo.
+// Es MUY IMPORTANTE tener un constructor por defecto.
+
+struct MaxInt {
+    int d; MaxInt(int D) : d(D) {}
+    MaxInt() : d(-INF) {} // IMPORTANTE!
+    MaxInt operator+(const MaxInt& o) {
+        return MaxInt(max(d, o.d));
+    }
+};
+
 // Fenwick Tree. Indices de 1 a n. 
 
 struct FenTree {
@@ -24,50 +88,8 @@ struct FenTree {
     }
     
     int Rango(int i, int j) {
-        return Query(j) - Query(i - 1);
-    }
-};
-
-// Segment Tree. Version dinamica, para generar
-// el arbol completo llamese la funcion Construir.
-
-struct SegTree {
-    int dato, i, d;
-    SegTree* izq, *der;
-    SegTree(int i_, int d_)
-        : izq(NULL), der(NULL),
-          i(i_), d(d_), dato() {}
-    
-    ~SegTree() {
-        if (izq) delete izq;
-        if (der) delete der;
-    }
-    
-    void Construir() {
-        if (i == d) return;
-        int m = (i + d) >> 1;
-        izq = new SegTree(i, m);
-        der = new SegTree(m + 1, d);
-        dato = izq->dato + der->dato;
-    }
-    
-    int Update(int a, int v) {
-        if (a < i || d < a) return dato;
-        if (a == i && d == a) return dato = v;
-        if (!left) {
-            int m = (i + d) >> 1;
-            izq = new SegTree(i, m);
-            der = new SegTree(m + 1, d);
-        }
-        return dato = izq->Update(a, v) +
-                      der->Update(a, v);
-    }
-    
-    int Query(int a, int b) {
-        if (b < i || d < a) return 0;
-        if (a <= i && d <= b) return dato;
-        return izq? izq->Query(a, b) + 
-                    der->Query(a, b): 0;
+        return Query(j) -
+               Query(i - 1);
     }
 };
 

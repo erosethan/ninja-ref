@@ -67,7 +67,8 @@ struct Bipartito {
 
 // EMPAREJAMIENTO BIPARTITO DE COSTO MAX/MIN
 // Nodos indexados de 0 a n - 1, diferencia
-// entre nodos a la izquierda y derecha.
+// entre nodos en el conjunto izquierdo y derecho.
+// Si da TLE, prueben cambiar Dato a long long.
 
 struct BipartitoCosto {
 
@@ -79,17 +80,18 @@ struct BipartitoCosto {
 
     // Emparejamiento de costo maximo S =  1
     // Emparejamiento de costo minimo S = -1
-
+    
     BipartitoCosto(int N, int S = 1)
-	: costo(N, Vec(N, INF * S)), s(S),
+        : costo(N, Vec(N, -INF * S)), s(S),
           slack(2*N), etiqueta(2*N), pareja(2*N),
           retorno(2*N), visitado(2*N), n(N) {}
 
-    void AgregarArista(int u, int v, int c) {
-        costo[u][v] = costo[v][u] = c * s;
+    void AgregarArista(
+        int u, int v, int c) {
+        costo[u][v] = c * s;
     }
 
-    vector<Par> MejorEmparejamiento() {
+    vector<Par> EmparejamientoOptimo() {
 
         fill(pareja.begin(), pareja.end(), -1);
         fill(etiqueta.begin(), etiqueta.end(), 0);
@@ -134,7 +136,7 @@ struct BipartitoCosto {
                 } else {
                     Dato d = INF;
                     for (int k = n; k < 2 * n; ++k)
-			if (slack[k]) d = min(d, slack[n]);
+                        if (slack[k]) d = min(d, slack[k]);
                     for (int k = 0; k < n; ++k)
                         if (visitado[k]) etiqueta[k] -= d;
                     for (int k = n; k < 2 * n; ++k)
@@ -145,8 +147,9 @@ struct BipartitoCosto {
         }
         vector<Par> pares;
         for (int i = 0; i < n; ++i)
-            pares.push_back(Par(i, pareja[i]));
-        return pares; // Parejas formadas.
+            if (costo[i][pareja[i] - n] != s * -INF)
+                pares.push_back(Par(i, pareja[i] - n));
+        return pares; // Emparejamiento optimo.
     }
 };
 

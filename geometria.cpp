@@ -98,7 +98,7 @@ int ManoDerecha(const Punto& o, const Punto& p, const Punto& q) {
 // Linea en 2D.
 // Si los puntos no aseguran coordenadas
 // enteras usar version double. ¡CUIDADO!
-// Verifique los tags <comment> <uncomment>
+// Verifiquen los tags <comment> <uncomment>
 
 struct Linea {
     Punto p, q;

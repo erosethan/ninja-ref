@@ -18,7 +18,7 @@ struct Punto {
 
     Punto() : x(), y() {}
     Punto(double X, double Y)
-        : x(Y), y(Y) {}
+        : x(X), y(Y) {}
 
     // Izquierda a derecha, abajo a arriba.
     bool operator<(const Punto& cmp) const {

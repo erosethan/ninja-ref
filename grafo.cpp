@@ -1,7 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Definiciones iniciales
+// Definiciones iniciales.
+
 typedef pair<int, int> Arista;
 typedef pair<int, Arista> PesoArista;
 
@@ -49,7 +50,7 @@ int EncontrarCiclo(int u) {
 // Orden topologico de un grafo dirigido aciclico.
 // Los indices de los nodos se asumen de 0 a n - 1.
 
-vector<int> orden_topo; // Resultado
+vector<int> orden_topo; // Resultado.
 
 void OrdenTopologico_(int u) {
     visitado[u] = true;
@@ -71,7 +72,7 @@ void OrdenTopologico(int n) {
 
 int numeracion, top_activo;
 int low[MAXN], num[MAXN], activo[MAXN];
-vector< vector<int> > CFCs; // Resultado
+vector< vector<int> > CFCs; // Resultado.
 
 void ObtenerCFCs_(int u) {
     activo[top_activo++] = u;
@@ -104,8 +105,8 @@ void ObtenerCFCs(int n) {
 // Detecta los puentes y puntos de articulacion en
 // un grafo bidireccional. Indices de 0 a n - 1.
 
-vector<int> puentes[MAXN]; // Resultado
-bool punto_art[MAXN]; // Resultado
+bool punto_art[MAXN]; // Resultado.
+vector<int> puentes[MAXN]; // Resultado.
 
 void PuntosArtPuentes_(int u, int p) {
     int hijos = 0;
@@ -241,7 +242,7 @@ vector<int> Dijkstra(int o, int n) {
 }
 
 // Dijkstra version lineal. Nodos indexados del 0 al n - 1.
-// ¡Peligro! Recuerden cuidar el peso maximo de las aristas.
+// ¡PELIGRO! Recuerden cuidar el peso maximo de las aristas.
 
 const int MAXP = 100 + 1; // Peso maximo + 1
 

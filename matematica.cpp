@@ -1,7 +1,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef long long int lli;
+// Definiciones iniciales.
+
+typedef long long Long;
 typedef vector< vector<double> > Matriz;
 
 const double ERROR = 1e-9;
@@ -33,8 +35,8 @@ void EliminaGaussiana(Matriz& m) {
 
 // Exponenciacion binaria a^n mod m.
 
-lli Exponenciar(lli a, lli n, lli m) {
-    lli res = 1, p = a;
+Long Exponenciar(Long a, Long n, Long m) {
+    Long res = 1, p = a;
     for (; n; n >>= 1) {
         if (n & 1) res =
             (res * p) % m;
@@ -45,8 +47,8 @@ lli Exponenciar(lli a, lli n, lli m) {
 
 // Multiplicacion binaria a*b mod m.
 
-lli Multiplicar(lli a, lli b, lli m) {
-    lli res = 0, p = a;
+Long Multiplicar(Long a, Long b, Long m) {
+    Long res = 0, p = a;
     for (; b; b >>= 1) {
         if (b & 1) res =
             (res + p) % m;

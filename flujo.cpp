@@ -386,7 +386,7 @@ struct FlujoCosto {
         return ActualizarFlujo(t, f);
     }
 
-    Datos FlujoCostoMin(int s, int t, int k = -1) {
+    Datos FlujoCostoMin(int s, int t, Dato k = INF) {
         vector<Dato> dist(n, INF); dist[s] = 0;
         for (int i = 0; i < n; ++i) {
             for (int u = 0; u < n; ++u) {
@@ -401,9 +401,9 @@ struct FlujoCosto {
         RecalcularCosto(dist);
 
         Datos flujo_costo(0, 0);
-        while (flujo_costo.first < k || k == -1) {
-            Datos fc = AumentarFlujo(s, t, (k == -1)?
-                INF: k - flujo_costo.first);
+        while (flujo_costo.first < k) {
+            Datos fc = AumentarFlujo(
+                s, t, k - flujo_costo.first);
             flujo_costo.second += fc.second;
             flujo_costo.first += fc.first;
             if (!fc.first) break;

@@ -17,8 +17,7 @@ struct Punto {
     double x, y;
 
     Punto() : x(), y() {}
-    Punto(double X, double Y)
-        : x(X), y(Y) {}
+    Punto(double X, double Y) : x(X), y(Y) {}
 
     // Izquierda a derecha, abajo a arriba.
     bool operator<(const Punto& cmp) const {
@@ -273,7 +272,7 @@ double DistanciaSegmenSegmen(const Linea& s, const Linea& r) {
 
 // Un poligono es una serie de
 // vertices conectados por aristas.
-// P = p1 -> p2 -> p3 -> ... -> pn-> p1.
+// P = p1 -> p2 -> p3 -> ... -> pn -> p1.
 typedef vector<Punto> Poligono;
 
 // Saber si un punto esta en el perimetro de un poligono.
@@ -420,11 +419,8 @@ vector<Poligono> CortarPoligono(
 
 // Circulo en 2D.
 struct Circulo {
-    Punto c; double r;
-
-    Circulo() : c(), r() {}
-    Circulo(const Punto& C,
-        double R) : c(C), r(R) {}
+    Punto c; double r; Circulo() : c(), r() {}
+    Circulo(const Punto& C, double R) : c(C), r(R) {}
 
     bool operator<(const Circulo& cmp) const {
         if (!(c == cmp.c)) return c < cmp.c;
@@ -476,8 +472,8 @@ Linea ProyTangentes(const Punto& p, const Circulo& c) {
 // Tangente = -1, No se intersectan = 0, Cuerda = 1.
 int IntersecCirculoRecta(const Circulo& c, const Linea& r) {
     double dist = DistanciaPuntoRecta(c.c, r);
-    if (Igual(dist, c.r)) return 0;
-    return (dist < c.r)? -1: 1;
+    if (Igual(dist, c.r)) return -1;
+    return (dist < c.r)? 1: 0;
 }
 
 // Soluciones a un sistema de ecuaciones cuadraticas.

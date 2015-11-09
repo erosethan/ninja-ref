@@ -269,11 +269,10 @@ struct FlujoCosto {
         }
     };
 
+    int n; vector<Par> prv; Vec dist;
     vector< vector<AristaFlujo*> > aristas;
-    int n; vector<Par> prv; vector<Dato> dist;
 
-    FlujoCosto(int N) : aristas(N),
-        prv(N), dist(N), n(N) {}
+    FlujoCosto(int N) : aristas(N), prv(N), dist(N), n(N) {}
 
     // No omitan el siguiente destructor!
     
@@ -337,7 +336,7 @@ struct FlujoCosto {
     // Flujo de costo minimo en O(VElogV * flow). Si dejan el
     // valor por defecto del parametro k saca el flujo maximo.
 
-    void RecalcularCosto(const vector<Dato>& pi) {
+    void RecalcularCosto(const Vec& pi) {
         for (int u = 0; u < n; ++u) {
             for (int i = 0; i < aristas[u].size(); ++i) {
                 AristaFlujo* v = aristas[u][i];
@@ -359,7 +358,7 @@ struct FlujoCosto {
     }
 
     Datos AumentarFlujo(int s, int t, Dato f) {
-        vector<Dato> dist(n, INF);
+        Vec dist(n, INF);
         fill(prv.begin(), prv.end(), Datos(-1, -1));
         priority_queue<Datos, vector<Datos>,
                        greater<Datos> > pq;
@@ -387,7 +386,7 @@ struct FlujoCosto {
     }
 
     Datos FlujoCostoMin(int s, int t, Dato k = INF) {
-        vector<Dato> dist(n, INF); dist[s] = 0;
+        Vec dist(n, INF); dist[s] = 0;
         for (int i = 0; i < n; ++i) {
             for (int u = 0; u < n; ++u) {
                 if (dist[u] == INF) continue;

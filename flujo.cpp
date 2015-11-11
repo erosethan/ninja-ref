@@ -11,6 +11,13 @@ typedef pair<int, int> Par;
 typedef pair<Dato, Dato> Datos;
 
 const Dato INF = 1 << 30;
+const double ERROR = 1e-9;
+
+// Tolerancia en flotantes.
+
+bool Igual(double a, double b) {
+    return fabs(a - b) < ERROR;
+}
 
 // EMPAREJAMIENTO BIPARTITO
 // Nodos indexados de 0 a n - 1.
@@ -73,8 +80,7 @@ struct Bipartito {
 
 struct BipartitoCosto {
 
-    int n, s;
-    Mat costo;
+    int n, s; Mat costo;
     Vec slack, etiqueta;
     Lista pareja, retorno;
     vector<bool> visitado;
@@ -111,7 +117,7 @@ struct BipartitoCosto {
             for (int j = 0; !emparejado; ++j) {
                 int t = n; for (; t < 2 * n; ++t) {
                     if (visitado[t]) continue;
-                    if (!slack[t]) break;
+                    if (Igual(slack[t], 0)) break;
                 }
                 if (t < 2 * n) {
                     visitado[t] = true;
@@ -148,7 +154,7 @@ struct BipartitoCosto {
         }
         vector<Par> pares;
         for (int i = 0; i < n; ++i)
-            if (costo[i][pareja[i] - n] != s * -INF)
+            if (!Igual(costo[i][pareja[i] - n], -INF * s))
                 pares.push_back(Par(i, pareja[i] - n));
         return pares; // Emparejamiento optimo.
     }
@@ -160,9 +166,8 @@ struct BipartitoCosto {
 struct Flujo {
 
     int n;
-    Lista padre;
     Mat cap, flujo;
-    vector<Dato> dist;
+    Lista padre, dist;
     vector<Lista> aristas;
 
     Flujo(int N) : dist(N), padre(N), aristas(N),
@@ -195,7 +200,7 @@ struct Flujo {
             q.pop(); if (u == t) break;
             for (int i = 0; i < aristas[u].size(); ++i) {
                 int v = aristas[u][i];
-                if (flujo[u][v] == cap[u][v] ||
+                if (Igual(flujo[u][v], cap[u][v]) ||
                     padre[v] != -1) continue;
                 padre[v] = u, q.push(v);
             }
@@ -216,7 +221,8 @@ struct Flujo {
     Dato FlujoBloqueante(int u, int t, Dato f) {
         if (u == t) return f; Dato fluido = 0;
         for (int i = 0; i < aristas[u].size(); ++i) {
-            if (fluido == f) break; int v = aristas[u][i];
+            int v = aristas[u][i];
+            if (Igual(fluido, f)) break;
             if (dist[u] + 1 > dist[v]) continue;
             Dato fv = FlujoBloqueante(v, t,
                 min(f - fluido, cap[u][v] - flujo[u][v]));
@@ -235,7 +241,7 @@ struct Flujo {
                 int u = q.front(); q.pop();
                 for (int i = 0; i < aristas[u].size(); ++i) {
                     int v = aristas[u][i];
-                    if (flujo[u][v] == cap[u][v] ||
+                    if (Igual(flujo[u][v], cap[u][v]) ||
                         dist[v] <= dist[u] + 1) continue;
                     dist[v] = dist[u] + 1, q.push(v);
                 }
@@ -301,7 +307,7 @@ struct FlujoCosto {
     Dato FlujoBloqueante(int u, int t, Dato f) {
         if (u == t) return f; Dato fluido = 0;
         for (int i = 0; i < aristas[u].size(); ++i) {
-            if (fluido == f) break;
+            if (Igual(fluido, f)) break;
             AristaFlujo* v = aristas[u][i];
             if (dist[u] + 1 == dist[v->dst]) {
                 Dato fv = FlujoBloqueante(v->dst, t,
@@ -322,7 +328,7 @@ struct FlujoCosto {
                 for (int i = 0; i < aristas[u].size(); ++i) {
                     AristaFlujo* v = aristas[u][i];
                     if (dist[v->dst] < INF) continue;
-                    if (v->flujo == v->cap) continue;
+                    if (Igual(v->flujo, v->cap)) continue;
                     dist[v->dst] = dist[u] + 1;
                     q.push(v->dst);
                 }
@@ -370,7 +376,7 @@ struct FlujoCosto {
             if (dist[u] < p) continue;        
             for (int i = 0; i < aristas[u].size(); ++i) {
                 AristaFlujo* v = aristas[u][i];
-                if (v->flujo == v->cap) continue;
+                if (Igual(v->flujo, v->cap)) continue;
                 if (dist[u] + v->npeso < dist[v->dst]) {
                     dist[v->dst] = dist[u] + v->npeso;
                     pq.push(Datos(dist[v->dst], v->dst));
@@ -379,7 +385,7 @@ struct FlujoCosto {
                 }
             }
         }
-        if (dist[t] == INF)
+        if (Igual(dist[t], INF))
             return Datos(0, 0);
         RecalcularCosto(dist);
         return ActualizarFlujo(t, f);
@@ -389,7 +395,7 @@ struct FlujoCosto {
         Vec dist(n, INF); dist[s] = 0;
         for (int i = 0; i < n; ++i) {
             for (int u = 0; u < n; ++u) {
-                if (dist[u] == INF) continue;
+                if (Igual(dist[u], INF)) continue;
                 for (int j = 0; j < aristas[u].size(); ++j) {
                     AristaFlujo* v = aristas[u][j];
                     if (v->flujo < v->cap)  dist[v->dst] = min(
@@ -405,7 +411,7 @@ struct FlujoCosto {
                 s, t, k - flujo_costo.first);
             flujo_costo.second += fc.second;
             flujo_costo.first += fc.first;
-            if (!fc.first) break;
+            if (Igual(fc.first, 0)) break;
         }
         return flujo_costo;
     }

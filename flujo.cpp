@@ -3,32 +3,23 @@ using namespace std;
 
 // Definiciones iniciales.
 
-typedef long long Dato; // Ajustable.
-typedef vector<Dato> Vec;
-typedef vector<Vec> Mat;
+typedef int Flujo; // Ajustable.
+
 typedef vector<int> Lista;
 typedef pair<int, int> Par;
-typedef pair<Dato, Dato> Datos;
+typedef vector<Flujo> Flujo1D;
+typedef vector<Flujo1D> Flujo2D;
 
-const Dato INF = 1 << 30;
-const double ERROR = 1e-9;
-
-// Tolerancia en flotantes.
-
-bool Igual(double a, double b) {
-    return fabs(a - b) < ERROR;
-}
+const Flujo FINF = 1 << 30;
 
 // EMPAREJAMIENTO BIPARTITO
 // Nodos indexados de 0 a n - 1.
 
 struct Bipartito {
 
-    int n;
-    Lista pareja;
-    vector<bool> lado;
-    vector<bool> visitado;
+    int n; Lista pareja;
     vector<Lista> aristas;
+    vector<bool> lado, visitado;
 
     Bipartito(int N) : lado(N), pareja(N),
         visitado(N), aristas(N), n(N) {}
@@ -55,8 +46,6 @@ struct Bipartito {
         return -1;
     }
 
-    // Maximo emparejamiento en grafo bipartito.
-
     vector<Par> MaxEmparejamiento() {
         fill(pareja.begin(), pareja.end(), -1);
         for (int i = 0; i < n; ++i) {
@@ -71,6 +60,113 @@ struct Bipartito {
     }
 };
 
+// FLUJO MAXIMO
+// Nodos indexados de 0 a n - 1.
+
+struct GrafoFlujo {
+
+    int n; vector<Lista> aristas;
+    Flujo2D cap, flujo; Lista padre, dist;
+    
+    GrafoFlujo(int N) : dist(N), padre(N), aristas(N),
+        cap(N, Flujo1D(N)), flujo(N, Flujo1D(N)), n(N) {}
+
+    void AgregarArista(int u, int v, Flujo c) {
+        flujo[v][u] += c; // Solo dirigidas!
+        cap[u][v] += c, cap[v][u] += c;
+        aristas[u].push_back(v);
+        aristas[v].push_back(u);
+    }
+
+    // Flujo maximo mediante Edmonds-Karp O(VE^2).
+
+    Flujo ActualizarFlujo(int u, Flujo f) {
+        int p = padre[u];
+        if (p == u) return f;
+        f = ActualizarFlujo(p, min(f,
+            cap[p][u] - flujo[p][u]));
+        flujo[p][u] += f;
+        flujo[u][p] -= f;
+        return f;
+    }
+
+    Flujo AumentarFlujo(int s, int t) {
+        fill(padre.begin(), padre.end(), -1);
+        queue<int> q; q.push(s); padre[s] = s;
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop(); if (u == t) break;
+            for (int i = 0; i < aristas[u].size(); ++i) {
+                int v = aristas[u][i];
+                if (flujo[u][v] == cap[u][v] ||
+                    padre[v] != -1) continue;
+                padre[v] = u, q.push(v);
+            }
+        }
+        if (padre[t] == -1) return 0;
+        return ActualizarFlujo(t, FINF);
+    }
+
+    Flujo EdmondsKarp(int s, int t) {
+        Flujo flujo_maximo = 0, f;
+        while (f = AumentarFlujo(s, t))
+            flujo_maximo += f;
+        return flujo_maximo;
+    }
+
+    // Flujo maximo mediante Dinic O(V^2E).
+
+    Flujo FlujoBloqueante(int u, int t, Flujo f) {
+        if (u == t) return f; Flujo fluido = 0;
+        for (int i = 0; i < aristas[u].size(); ++i) {
+            if (fluido == f) break; int v = aristas[u][i];
+            if (dist[u] + 1 > dist[v]) continue;
+            Flujo fv = FlujoBloqueante(v, t,
+                min(f - fluido, cap[u][v] - flujo[u][v]));
+            flujo[u][v] += fv, fluido += fv;
+            flujo[v][u] -= fv;
+        }
+        return fluido;
+    }
+
+    Flujo Dinic(int s, int t) {
+        Flujo flujo_maximo = dist[t] = 0;
+        while (dist[t] < INT_MAX) {
+            fill(dist.begin(), dist.end(), INT_MAX);
+            queue<int> q; q.push(s); dist[s] = 0;
+            while (!q.empty()) {
+                int u = q.front(); q.pop();
+                for (int i = 0; i < aristas[u].size(); ++i) {
+                    int v = aristas[u][i];
+                    if (flujo[u][v] == cap[u][v] ||
+                        dist[v] <= dist[u] + 1) continue;
+                    dist[v] = dist[u] + 1, q.push(v);
+                }
+            }
+            if (dist[t] < INT_MAX) flujo_maximo +=
+                FlujoBloqueante(s, t, FINF);
+        }
+        return flujo_maximo;
+    }
+};
+
+// Definiciones adicionales.
+
+typedef int Costo; // Ajustable.
+
+typedef vector<Costo> Costo1D;
+typedef vector<Costo1D> Costo2D;
+typedef pair<Costo, int> CostoNodo;
+typedef pair<Flujo, Costo> FlujoCosto;
+
+const double ERROR = 1e-9;
+const Costo CINF = 1 << 30;
+
+// Tolerancia en flotantes.
+
+bool Igual(double a, double b) {
+    return fabs(a - b) < ERROR;
+}
 
 // EMPAREJAMIENTO BIPARTITO DE COSTO MAX/MIN
 // Nodos indexados de 0 a n - 1, diferencia
@@ -80,26 +176,21 @@ struct Bipartito {
 
 struct BipartitoCosto {
 
-    int n, s; Mat costo;
-    Vec slack, etiqueta;
-    Lista pareja, retorno;
-    vector<bool> visitado;
+    Lista pareja, retorno; vector<bool> visitado;
+    int n, s; Costo1D slack, etiqueta; Costo2D costo;
 
     // Emparejamiento de costo maximo S =  1
     // Emparejamiento de costo minimo S = -1
     
     BipartitoCosto(int N, int S = 1)
-        : costo(N, Vec(N, -INF * S)), s(S),
-          slack(2*N), etiqueta(2*N), pareja(2*N),
-          retorno(2*N), visitado(2*N), n(N) {}
+        : costo(N, Costo1D(N, S * -CINF)), s(S),
+          slack(2 * N), etiqueta(2 * N), pareja(2 * N),
+          retorno(2 * N), visitado(2 * N), n(N) {}
 
-    void AgregarArista(
-        int u, int v, int c) {
-        costo[u][v] = c * s;
-    }
+    void AgregarArista(int u, int v,
+        Costo c) { costo[u][v] = c * s; }
 
     vector<Par> EmparejamientoOptimo() {
-
         fill(pareja.begin(), pareja.end(), -1);
         fill(etiqueta.begin(), etiqueta.end(), 0);
         for (int i = 0; i < n; ++i) for (int j = 0; j < n; ++j)
@@ -132,18 +223,20 @@ struct BipartitoCosto {
                     } else {
                         visitado[t = pareja[t]] = true;
                         for (int k = 0; k < n; ++k) {
-                            Dato new_slack = etiqueta[t] +
+                            Costo new_slack = etiqueta[t] +
                                 etiqueta[k + n] - costo[t][k];
-                            if (new_slack < slack[k + n]) {
+                            if (!Igual(new_slack, slack[k + n])
+                                && new_slack < slack[k + n]) {
                                 slack[k + n] = new_slack;
                                 retorno[k + n] = t;
                             }
                         }
                     }
                 } else {
-                    Dato d = INF;
+                    Costo d = CINF;
                     for (int k = n; k < 2 * n; ++k)
-                        if (slack[k]) d = min(d, slack[k]);
+                        if (!Igual(slack[k], 0))
+                            d = min(d, slack[k]);
                     for (int k = 0; k < n; ++k)
                         if (visitado[k]) etiqueta[k] -= d;
                     for (int k = n; k < 2 * n; ++k)
@@ -154,102 +247,9 @@ struct BipartitoCosto {
         }
         vector<Par> pares;
         for (int i = 0; i < n; ++i)
-            if (!Igual(costo[i][pareja[i] - n], -INF * s))
+            if (!Igual(costo[i][pareja[i] - n], s * -CINF))
                 pares.push_back(Par(i, pareja[i] - n));
         return pares; // Emparejamiento optimo.
-    }
-};
-
-// FLUJO MAXIMO
-// Nodos indexados de 0 a n - 1.
-
-struct Flujo {
-
-    int n;
-    Mat cap, flujo;
-    Lista padre, dist;
-    vector<Lista> aristas;
-
-    Flujo(int N) : dist(N), padre(N), aristas(N),
-        cap(N, Vec(N)), flujo(N, Vec(N)), n(N) {}
-
-    void AgregarArista(int u, int v, Dato c) {
-        flujo[v][u] += c; // Solo dirigidas!
-        cap[u][v] += c, cap[v][u] += c;
-        aristas[u].push_back(v);
-        aristas[v].push_back(u);
-    }
-
-    // Flujo maximo mediante Edmonds-Karp O(VE^2).
-
-    Dato ActualizarFlujo(int u, Dato f) {
-        int p = padre[u];
-        if (p == u) return f;
-        f = ActualizarFlujo(p, min(
-            f, cap[p][u] - flujo[p][u]));
-        flujo[p][u] += f;
-        flujo[u][p] -= f;
-        return f;
-    }
-
-    Dato AumentarFlujo(int s, int t) {
-        fill(padre.begin(), padre.end(), -1);
-        queue<int> q; q.push(s); padre[s] = s;
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop(); if (u == t) break;
-            for (int i = 0; i < aristas[u].size(); ++i) {
-                int v = aristas[u][i];
-                if (Igual(flujo[u][v], cap[u][v]) ||
-                    padre[v] != -1) continue;
-                padre[v] = u, q.push(v);
-            }
-        }
-        if (padre[t] == -1) return 0;
-        return ActualizarFlujo(t, INF);
-    }
-
-    Dato EdmondsKarp(int s, int t) {
-        Dato flujo_maximo = 0, f;
-        while (f = AumentarFlujo(s, t))
-            flujo_maximo += f;
-        return flujo_maximo;
-    }
-
-    // Flujo maximo mediante Dinic O(V^2E).
-
-    Dato FlujoBloqueante(int u, int t, Dato f) {
-        if (u == t) return f; Dato fluido = 0;
-        for (int i = 0; i < aristas[u].size(); ++i) {
-            int v = aristas[u][i];
-            if (Igual(fluido, f)) break;
-            if (dist[u] + 1 > dist[v]) continue;
-            Dato fv = FlujoBloqueante(v, t,
-                min(f - fluido, cap[u][v] - flujo[u][v]));
-            flujo[u][v] += fv, fluido += fv;
-            flujo[v][u] -= fv;
-        }
-        return fluido;
-    }
-
-    Dato Dinic(int s, int t) {
-        Dato flujo_maximo = dist[t] = 0;
-        while (dist[t] < INF) {
-            fill(dist.begin(), dist.end(), INF);
-            queue<int> q; q.push(s); dist[s] = 0;
-            while (!q.empty()) {
-                int u = q.front(); q.pop();
-                for (int i = 0; i < aristas[u].size(); ++i) {
-                    int v = aristas[u][i];
-                    if (Igual(flujo[u][v], cap[u][v]) ||
-                        dist[v] <= dist[u] + 1) continue;
-                    dist[v] = dist[u] + 1, q.push(v);
-                }
-            }
-            if (dist[t] < INF) flujo_maximo +=
-                FlujoBloqueante(s, t, INF);
-        }
-        return flujo_maximo;
     }
 };
 
@@ -258,40 +258,39 @@ struct Flujo {
 // Nodos indexados de 0 a n - 1.
 // No utiliza matrices de adyacencia.
 
-struct FlujoCosto {
+struct GrafoFlujoCosto {
 
     struct AristaFlujo {
-        int dst; Dato cap,
-        flujo, peso, npeso;
-        AristaFlujo* residual;
 
-        AristaFlujo(int d, Dato f, Dato c)
+        int dst; AristaFlujo* residual;
+        Flujo cap, flujo; Costo peso, npeso;
+
+        AristaFlujo(int d, Flujo f, Flujo c)
             : dst(d), flujo(f), cap(c) {}
 
-        Dato AumentarFlujo(Dato f) {
+        Costo AumentarFlujo(Flujo f) {
             residual->flujo -= f;
             this->flujo += f;
             return peso * f;
         }
     };
 
-    int n; vector<Par> prv; Vec dist;
+    int n; vector<Par> prv; Lista dist;
     vector< vector<AristaFlujo*> > aristas;
 
-    FlujoCosto(int N) : aristas(N), prv(N), dist(N), n(N) {}
-
-    // No omitan el siguiente destructor!
+    GrafoFlujoCosto(int N) : n(N),
+        aristas(N), prv(N), dist(N) {}
     
-    ~FlujoCosto() { for (int i = 0; i < n; ++i)
+    ~GrafoFlujoCosto() { for (int i = 0; i < n; ++i)
         for (int j = 0; j < aristas[i].size(); ++j)
-            delete aristas[i][j];
+            delete aristas[i][j]; // NO OMITIR!!!
     }
 
     // Para aristas bidireccionales agreguen dos aristas
     // dirigidas. Si las aristas no son ponderadas dejen
     // el ultimo parametro con el valor por defecto.
 
-    void AgregarArista(int u, int v, Dato c, Dato p = 0) {
+    void AgregarArista(int u, int v, Flujo c, Costo p = 0) {
         AristaFlujo* uv = new AristaFlujo(v, 0, c);
         AristaFlujo* vu = new AristaFlujo(u, c, c);
         uv->residual = vu, vu->residual = uv;
@@ -304,13 +303,13 @@ struct FlujoCosto {
     // Dinic para flujo maximo con memoria optimizada.
     // Prefieran esta version solo cuando n > 5,000.
 
-    Dato FlujoBloqueante(int u, int t, Dato f) {
-        if (u == t) return f; Dato fluido = 0;
+    Flujo FlujoBloqueante(int u, int t, Flujo f) {
+        if (u == t) return f; Flujo fluido = 0;
         for (int i = 0; i < aristas[u].size(); ++i) {
-            if (Igual(fluido, f)) break;
+            if (fluido == f) break;
             AristaFlujo* v = aristas[u][i];
             if (dist[u] + 1 == dist[v->dst]) {
-                Dato fv = FlujoBloqueante(v->dst, t,
+                Flujo fv = FlujoBloqueante(v->dst, t,
                     min(f - fluido, v->cap - v->flujo));
                 v->AumentarFlujo(fv), fluido += fv;
             }
@@ -318,23 +317,23 @@ struct FlujoCosto {
         return fluido;
     }
 
-    Dato Dinic(int s, int t) {
-        Dato flujo_maximo = dist[t] = 0;
-        while (dist[t] < INF) {
-            fill(dist.begin(), dist.end(), INF);
+    Flujo Dinic(int s, int t) {
+        Flujo flujo_maximo = dist[t] = 0;
+        while (dist[t] < INT_MAX) {
+            fill(dist.begin(), dist.end(), INT_MAX);
             queue<int> q; q.push(s); dist[s] = 0;
             while (!q.empty()) {
                 int u = q.front(); q.pop();
                 for (int i = 0; i < aristas[u].size(); ++i) {
                     AristaFlujo* v = aristas[u][i];
-                    if (dist[v->dst] < INF) continue;
-                    if (Igual(v->flujo, v->cap)) continue;
+                    if (dist[v->dst] < INT_MAX) continue;
+                    if (v->flujo == v->cap) continue;
                     dist[v->dst] = dist[u] + 1;
                     q.push(v->dst);
                 }
             }
-            if (dist[t] < INF) flujo_maximo +=
-                FlujoBloqueante(s, t, INF);
+            if (dist[t] < INT_MAX) flujo_maximo +=
+                FlujoBloqueante(s, t, FINF);
         }
         return flujo_maximo;
     }
@@ -342,7 +341,7 @@ struct FlujoCosto {
     // Flujo de costo minimo en O(VElogV * flow). Si dejan el
     // valor por defecto del parametro k saca el flujo maximo.
 
-    void RecalcularCosto(const Vec& pi) {
+    void RecalcularCosto(const Costo1D& pi) {
         for (int u = 0; u < n; ++u) {
             for (int i = 0; i < aristas[u].size(); ++i) {
                 AristaFlujo* v = aristas[u][i];
@@ -351,67 +350,68 @@ struct FlujoCosto {
         }
     }
 
-    Datos ActualizarFlujo(int u, Dato f) {
-        int p = prv[u].first;
-        int i = prv[u].second;
-        if (p == -1) return Datos(f, 0);
+    FlujoCosto ActualizarFlujo(int u, Flujo f) {
+        int p = prv[u].first, i = prv[u].second;
+        if (p == -1) return FlujoCosto(f, 0);
         AristaFlujo* pu = aristas[p][i];
 
-        Datos res = ActualizarFlujo(
+        FlujoCosto res = ActualizarFlujo(
             p, min(f, pu->cap - pu->flujo));
         res.second += pu->AumentarFlujo(
             res.first); return res;
     }
 
-    Datos AumentarFlujo(int s, int t, Dato f) {
-        Vec dist(n, INF);
-        fill(prv.begin(), prv.end(), Datos(-1, -1));
-        priority_queue<Datos, vector<Datos>,
-                       greater<Datos> > pq;
-        pq.push(Datos(0, s)); dist[s] = 0;
+    FlujoCosto AumentarFlujo(int s, int t, Flujo f) {
+        Costo1D dist(n, CINF);
+        fill(prv.begin(), prv.end(), Par(-1, -1));
+        priority_queue<CostoNodo, vector<CostoNodo>,
+                       greater<CostoNodo> > pq;
+        pq.push(FlujoCosto(0, s)); dist[s] = 0;
         
         while (!pq.empty()) {
             int u = pq.top().second;
-            int p = pq.top().first; pq.pop();
-            if (dist[u] < p) continue;        
+            Costo p = pq.top().first; pq.pop();
+            if (!Igual(dist[u], p)) continue;
             for (int i = 0; i < aristas[u].size(); ++i) {
                 AristaFlujo* v = aristas[u][i];
-                if (Igual(v->flujo, v->cap)) continue;
-                if (dist[u] + v->npeso < dist[v->dst]) {
+                if (v->flujo == v->cap) continue;
+                Costo ndist = dist[u] + v->npeso;
+                if (!Igual(ndist, dist[v->dst]) &&
+                           ndist < dist[v->dst]) {
                     dist[v->dst] = dist[u] + v->npeso;
-                    pq.push(Datos(dist[v->dst], v->dst));
+                    pq.push(CostoNodo(ndist, v->dst));
                     prv[v->dst].second = i;
                     prv[v->dst].first = u;
                 }
             }
         }
-        if (Igual(dist[t], INF))
-            return Datos(0, 0);
+        if (Igual(dist[t], CINF))
+            return FlujoCosto(0, 0);
         RecalcularCosto(dist);
         return ActualizarFlujo(t, f);
     }
 
-    Datos FlujoCostoMin(int s, int t, Dato k = INF) {
-        Vec dist(n, INF); dist[s] = 0;
+    FlujoCosto FlujoCostoMin(int s, int t, Flujo k = FINF) {
+        Costo1D dist(n, CINF); dist[s] = 0;
         for (int i = 0; i < n; ++i) {
             for (int u = 0; u < n; ++u) {
-                if (Igual(dist[u], INF)) continue;
+                if (Igual(dist[u], CINF)) continue;
                 for (int j = 0; j < aristas[u].size(); ++j) {
                     AristaFlujo* v = aristas[u][j];
-                    if (v->flujo < v->cap)  dist[v->dst] = min(
-                        dist[v->dst], dist[u] + v->npeso);
+                    if (v->flujo < v->cap) dist[v->dst] =
+                        min(dist[v->dst], dist[u] + v->npeso);
                 }
             }
         }
         RecalcularCosto(dist);
 
-        Datos flujo_costo(0, 0);
+        FlujoCosto flujo_costo(0, 0);
         while (flujo_costo.first < k) {
-            Datos fc = AumentarFlujo(
+            FlujoCosto fc = AumentarFlujo(
                 s, t, k - flujo_costo.first);
             flujo_costo.second += fc.second;
             flujo_costo.first += fc.first;
-            if (Igual(fc.first, 0)) break;
+            if (!fc.first) break;
         }
         return flujo_costo;
     }

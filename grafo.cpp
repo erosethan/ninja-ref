@@ -188,6 +188,7 @@ bool Bicolorear_(int u, int c) {
         if (color[v] == c) return false;
         if (!Bicolorear_(v, 1 - c)) return false;
     }
+    return true;
 }
 
 bool Bicolorear(int n) {

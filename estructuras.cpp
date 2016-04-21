@@ -28,8 +28,8 @@ struct SegTree {
         int m = (i + d) >> 1;
         izq = new SegTree(i, m);
         der = new SegTree(m + 1, d);
-        dato = izq->Construir() +
-               der->Construir();
+        return dato = izq->Construir() +
+                      der->Construir();
     }
     
     T Actualizar(int a, T v) {

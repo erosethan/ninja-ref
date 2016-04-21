@@ -23,12 +23,13 @@ struct SegTree {
         if (der) delete der;
     }
     
-    void Construir() {
-        if (i == d) return;
+    T Construir() {
+        if (i == d) return dato = T();
         int m = (i + d) >> 1;
         izq = new SegTree(i, m);
         der = new SegTree(m + 1, d);
-        dato = izq->dato + der->dato;
+        dato = izq->Construir() +
+               der->Construir();
     }
     
     T Actualizar(int a, T v) {

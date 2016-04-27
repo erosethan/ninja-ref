@@ -22,6 +22,8 @@ void AgregarArista(int u, int v) {
 // Devuelve -1 si no existen ciclos. En caso de existir,
 // los nodos del ciclo se guardan en el arreglo ciclo.
 
+// ESTA CHINGADERA NO FUNCIONA!!!
+
 int top_ciclo;
 int ciclo[MAXN];
 bool ciclo_activo;
@@ -162,7 +164,7 @@ struct UnionFind {
         int Ru = Encontrar(u);
         int Rv = Encontrar(v);
         if (Ru == Rv) return;
-        -- nconjuntos, padre[Ru] = Rv;
+        --nconjuntos, padre[Ru] = Rv;
         tamano[Rv] += tamano[Ru];
     }
 

@@ -205,7 +205,8 @@ int InterseccionRectas(const Linea& r, const Linea& s) {
 // No intersectan = 0, Interseccion en un punto = 1,
 // Interseccion paralela en infinitos puntos = -1.
 int IntersecRectaSegmen(const Linea& r, const Linea& s) {
-    if (LineasParalelas(r, s)) return -1;
+    if (LineasIguales(r, s)) return -1;
+    if (LineasParalelas(r, s)) return 0;
     int t1 = ManoDerecha(r.p, r.q, s.p);
     int t2 = ManoDerecha(r.p, r.q, s.q);
     return (t1 != t2)? 1: 0;

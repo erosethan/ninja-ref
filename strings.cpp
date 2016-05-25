@@ -28,13 +28,13 @@ vector<int> SuffixArray(const string& str) {
         nrank[i] = str[i], sa[i] = i;
 
     for (int p = 0; true; ++p) {
-        BucketSort(sa, nrank, ranks+1);
-        BucketSort(sa,  rank, ranks+1);
+        BucketSort(sa, nrank, ranks + 1);
+        BucketSort(sa,  rank, ranks + 1);
 
         tmp_rank[0] = ranks = 0;
         for (int i = 1; i < str.size(); ++i)
-            if (rank[sa[i]] != rank[sa[i-1]] ||
-                nrank[sa[i]] != nrank[sa[i-1]])
+            if (rank[sa[i]] != rank[sa[i - 1]] ||
+                nrank[sa[i]] != nrank[sa[i - 1]])
                  tmp_rank[i] = ++ranks;
             else tmp_rank[i] = ranks;
 

@@ -94,6 +94,31 @@ int ManoDerecha(const Punto& o, const Punto& p, const Punto& q) {
     return Igual(ccw, 0)? 0: (ccw < 0)? -1: 1;
 }
 
+// Par de puntos mas cercanos en un conjunto de puntos P.
+pair<Punto, Punto> ParMasCercano(vector<Punto> P) {
+    // Si ya esta ordenado, no usar sort.
+	sort(P.begin(), P.end());
+
+	set<Punto> rect;
+	pair<Punto, Punto> par;
+	int prev = 0; double delta = 1e9;
+	for (int i = 0; i < P.size(); ++i) {
+		while (P[i].x - P[prev].x > delta)
+			rect.erase(Punto(P[prev].y, P[prev++].x));
+
+		set<Punto>::iterator it = rect.lower_bound(
+			Punto(P[i].y - delta, P[0].x));
+
+		for (; it != rect.end() && it->x <= P[i].y + delta; ++it) {
+			double dist = hypot(P[i].x - it->y, P[i].y - it->x);
+			if (dist < delta) delta = dist, par = make_pair(
+				Punto(it->y, it->x), P[i]);
+		}
+		rect.insert(Punto(P[i].y, P[i].x));
+	}
+	return par; // Alternativamente puede devolver delta.
+}
+
 // Linea en 2D.
 // Si los puntos no aseguran coordenadas
 // enteras usar version double. ¡CUIDADO!

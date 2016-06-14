@@ -171,6 +171,53 @@ vector<pii> factors(int a){
 	return facts;
 }
 
+//Sieve
+const int MAXN = ;
+
+bitset<MAXN + 1> primes;
+void Sieve() {
+	primes.set();
+	primes[0] = primes[1] = 0;
+	long long sroot = sqrt(MAXN);
+	for (long long j = 2LL * 2LL; j <= MAXN; j += 2LL)
+		primes[j] = 0;
+	long long sroot = sqrt(MAXN);
+	for (long long i = 3LL; i <= sroot; i += 2LL) {
+		if (primes[i]) {
+			for (long long j = i * i; j <= MAXN; j += i)
+				primes[j] = 0;
+		} 
+	}
+	return;
+}
+
+long long sieve[MAXN + 1];
+void Sieve() {
+	for (long long j = 2LL * 2LL; j <= MAXN; j += 2LL)
+		sieve[j] = 2LL;
+	long long sroot = sqrt(MAXN);
+	for (long long i = 3LL; i <= sroot; i += 2LL) {
+		if (sieve[i]) {
+			for (long long j = i * i; j <= MAXN; j += i)
+			if (!sieve[j])
+				sieve[j] = i;
+		} 
+	}
+	return;
+}
+
+int exp[MAXN + 1];
+void AcumuladoFactorial() {
+	fill(exp, exp + MAXN + 1, 1);
+	for (int i = n; i > 3; --i) {
+		if (!sieve[i]) continue;
+		exp[sieve[i]] += exp[i];
+		exp[i / sieve[i]] += exp[i];
+		exp[i] = 0;
+	}
+	return;
+}
+
 int main() {
     return 0;
 }

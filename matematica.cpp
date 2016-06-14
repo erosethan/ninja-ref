@@ -145,6 +145,32 @@ Vector ConvolucionDiscreta(
     return convolucion;
 }
 
+//Factores Primos
+
+#include <cmath>
+typedef pair<int, int> pii;
+
+vector<pii> factors(int a){
+	int count = 0, root;
+	while(!(a%2)){
+		a /= 2;
+		count++;
+	}
+	vector<pii> facts;
+	if(count) facts.push_back(pii(2,count));
+	root = sqrt(a);
+	for(int i = 3; i <= root; i++){
+		count = 0;
+		while(!(a%i)){
+			a /= i;
+			count ++;
+		}
+		if(count) facts.push_back(pii(i,count));
+	}
+	if(a > 1) facts.push_back(pii(a,1));
+	return facts;
+}
+
 int main() {
     return 0;
 }

@@ -218,6 +218,38 @@ void AcumuladoFactorial() {
 	return;
 }
 
+
+#define ll long long
+using namespace std;
+
+ll gcd(ll a, ll b, ll* x, ll* y, ll mod){
+    if(b==0){
+        if (x && y) {
+            *x=1;
+            *y=0;
+        }
+        return a;
+    }
+    ll GCD = gcd(b, a%b, x, y, mod);
+    if (x && y) {
+        ll x_1, y_1;
+        x_1 = *y;
+        y_1 = (*x - ((*y)*(a/b))%mod + mod)%mod;
+        *x = x_1;
+        *y = y_1;
+    }
+    return GCD;
+}
+
+int main(){
+    ll a, b, x, y, GCD;
+    cin >> a >> b;
+    GCD = gcd(a, b, &x, &y, b);
+    cout << "Inverso de : " << a << " Modulo: " << b << " Es: " << x;
+}
+
+
+
 int main() {
     return 0;
 }

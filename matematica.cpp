@@ -248,6 +248,15 @@ int main(){
     cout << "Inverso de : " << a << " Modulo: " << b << " Es: " << x;
 }
 
+//Combinatoria modulada
+long long C[MAXN][MAXN]
+const long long mod = 1000000007LL;
+C[0][0] = 1LL;
+for (int i = 1; i < MAXN; ++i) {
+    C[i][0] = 1LL;
+    for (int j = 1; j <= i; j++)
+        C[i][j] = (C[i - 1][j - 1] + C[i -1][j]) % mod;
+}
 
 
 int main() {

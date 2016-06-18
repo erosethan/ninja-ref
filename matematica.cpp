@@ -4,6 +4,74 @@ using namespace std;
 // Definiciones iniciales.
 
 typedef long long Long;
+typedef pair<int, int> Factor;
+
+vector<Factor> FactoresPrimos(int a) {
+	int conteo = 0;
+	vector<Factor> factores;
+	while (!(a % 2)) ++conteo, a /= 2;
+	if (conteo) factores.push_back(
+		Factor(2, conteo)), conteo = 0;
+
+	int raiz = sqrt(a);
+	for (int i = 3; i <= raiz; i += 2) {
+		while (!(a % i)) ++conteo, a /= i;
+		if (conteo) factores.push_back(
+			Factor(i, conteo)), conteo = 0;
+	}
+	if (a > 1) factores.push_back(
+		Factor(a, 1));
+	return factores;
+}
+
+vector<int> Criba(int n) {
+	int raiz = sqrt(n); vector<int> criba(n + 1);
+	for (int i = 4; i <= n; i += 2) criba[i] = 2;
+	for (int i = 3; i <= raiz; i += 2) if (!criba[i])
+		for (int j = i * i; j <= n; j += i)
+			if (!criba[j]) criba[j] = i;
+	return criba;
+}
+
+vector<Factor> FactoresFactorial(
+	int n, const vector<int>& primos) {
+
+	vector<Factor> factores(primos.size());
+	for (int i = 0; i < primos.size(); ++i) {
+		int p = primos[i], reps = n / p;
+		while (primos[i] <= n / p)
+			p *= primos[i], reps += n / p;
+		factores[i] = Factor(primos[i], reps);
+	}
+	return factores;
+}
+
+// Exponenciacion binaria a^n mod m.
+
+Long Exponenciar(Long a, Long n, Long m) {
+    Long res = 1, p = a;
+    for (; n; n >>= 1) {
+        if (n & 1) res =
+            (res * p) % m;
+        p = (p * p) % m;
+    }
+    return res;
+}
+
+// Multiplicacion binaria a*b mod m.
+
+Long Multiplicar(Long a, Long b, Long m) {
+    Long res = 0, p = a;
+    for (; b; b >>= 1) {
+        if (b & 1) res =
+            (res + p) % m;
+        p = (p + p) % m;
+    }
+    return res;
+}
+
+// Definiciones para eliminacion Gaussiana.
+
 typedef vector<double> Vector;
 typedef vector<Vector> Matriz;
 
@@ -35,30 +103,6 @@ void EliminaGaussiana(Matriz& m) {
                 m[j][k] -= m[i][k] * ratio;
         }
     }
-}
-
-// Exponenciacion binaria a^n mod m.
-
-Long Exponenciar(Long a, Long n, Long m) {
-    Long res = 1, p = a;
-    for (; n; n >>= 1) {
-        if (n & 1) res =
-            (res * p) % m;
-        p = (p * p) % m;
-    }
-    return res;
-}
-
-// Multiplicacion binaria a*b mod m.
-
-Long Multiplicar(Long a, Long b, Long m) {
-    Long res = 0, p = a;
-    for (; b; b >>= 1) {
-        if (b & 1) res =
-            (res + p) % m;
-        p = (p + p) % m;
-    }
-    return res;
 }
 
 // Tipo de dato para operar con numeros complejos.
@@ -144,120 +188,6 @@ Vector ConvolucionDiscreta(
         convolucion[i] = C[i].real;
     return convolucion;
 }
-
-//Factores Primos
-
-#include <cmath>
-typedef pair<int, int> pii;
-
-vector<pii> factors(int a){
-	int count = 0, root;
-	while(!(a%2)){
-		a /= 2;
-		count++;
-	}
-	vector<pii> facts;
-	if(count) facts.push_back(pii(2,count));
-	root = sqrt(a);
-	for(int i = 3; i <= root; i++){
-		count = 0;
-		while(!(a%i)){
-			a /= i;
-			count ++;
-		}
-		if(count) facts.push_back(pii(i,count));
-	}
-	if(a > 1) facts.push_back(pii(a,1));
-	return facts;
-}
-
-//Sieve
-const int MAXN = ;
-
-bitset<MAXN + 1> primes;
-void Sieve() {
-	primes.set();
-	primes[0] = primes[1] = 0;
-	long long sroot = sqrt(MAXN);
-	for (long long j = 2LL * 2LL; j <= MAXN; j += 2LL)
-		primes[j] = 0;
-	long long sroot = sqrt(MAXN);
-	for (long long i = 3LL; i <= sroot; i += 2LL) {
-		if (primes[i]) {
-			for (long long j = i * i; j <= MAXN; j += i)
-				primes[j] = 0;
-		} 
-	}
-	return;
-}
-
-long long sieve[MAXN + 1];
-void Sieve() {
-	for (long long j = 2LL * 2LL; j <= MAXN; j += 2LL)
-		sieve[j] = 2LL;
-	long long sroot = sqrt(MAXN);
-	for (long long i = 3LL; i <= sroot; i += 2LL) {
-		if (sieve[i]) {
-			for (long long j = i * i; j <= MAXN; j += i)
-			if (!sieve[j])
-				sieve[j] = i;
-		} 
-	}
-	return;
-}
-
-int exp[MAXN + 1];
-void AcumuladoFactorial() {
-	fill(exp, exp + MAXN + 1, 1);
-	for (int i = n; i > 3; --i) {
-		if (!sieve[i]) continue;
-		exp[sieve[i]] += exp[i];
-		exp[i / sieve[i]] += exp[i];
-		exp[i] = 0;
-	}
-	return;
-}
-
-
-#define ll long long
-using namespace std;
-
-ll gcd(ll a, ll b, ll* x, ll* y, ll mod){
-    if(b==0){
-        if (x && y) {
-            *x=1;
-            *y=0;
-        }
-        return a;
-    }
-    ll GCD = gcd(b, a%b, x, y, mod);
-    if (x && y) {
-        ll x_1, y_1;
-        x_1 = *y;
-        y_1 = (*x - ((*y)*(a/b))%mod + mod)%mod;
-        *x = x_1;
-        *y = y_1;
-    }
-    return GCD;
-}
-
-int main(){
-    ll a, b, x, y, GCD;
-    cin >> a >> b;
-    GCD = gcd(a, b, &x, &y, b);
-    cout << "Inverso de : " << a << " Modulo: " << b << " Es: " << x;
-}
-
-//Combinatoria modulada
-long long C[MAXN][MAXN]
-const long long mod = 1000000007LL;
-C[0][0] = 1LL;
-for (int i = 1; i < MAXN; ++i) {
-    C[i][0] = 1LL;
-    for (int j = 1; j <= i; j++)
-        C[i][j] = (C[i - 1][j - 1] + C[i -1][j]) % mod;
-}
-
 
 int main() {
     return 0;

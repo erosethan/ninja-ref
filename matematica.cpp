@@ -70,6 +70,16 @@ Long Multiplicar(Long a, Long b, Long m) {
     return res;
 }
 
+Long Euclides(Long a, Long b,
+	Long& x, Long& y, Long mod = 0) {
+    if (!b) { x = 1, y = 0; return a; }
+    Long gcd = Euclides(b, a % b, x, y, mod);
+
+    x = !mod? x - y * (a / b):
+    	(mod + x - y * (a / b)) % mod;
+    swap(x, y); return gcd;
+}
+
 // Definiciones para eliminacion Gaussiana.
 
 typedef vector<double> Vector;

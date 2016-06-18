@@ -71,7 +71,7 @@ Long Multiplicar(Long a, Long b, Long m) {
 }
 
 Long Euclides(Long a, Long b,
-	Long& x, Long& y, Long mod = 0) {
+    Long& x, Long& y, Long mod = 0) {
     if (!b) { x = 1, y = 0; return a; }
     Long gcd = Euclides(b, a % b, x, y, mod);
 

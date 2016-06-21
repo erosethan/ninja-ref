@@ -95,14 +95,18 @@ bool Igual(double a, double b) {
 }
 
 // Realiza eliminacion Gaussiana en una matriz.
+// Para obtener la matriz inversa comentar los tags <comment>.
 
 void EliminaGaussiana(Matriz& m) {
+
     for (int i = 0; i < m.size(); ++i) {
+    	// <comment>
         int fila_mayor = i;
         for (int j = i + 1; j < m.size(); ++j)
             if (fabs(m[fila_mayor][i]) <
                 fabs(m[j][i])) fila_mayor = j;
         swap(m[i], m[fila_mayor]);
+        // </comment>
         if (Igual(m[i][i], 0)) continue;
         for (int j = m[i].size() - 1; j >= i; --j)
             m[i][j] /= m[i][i];

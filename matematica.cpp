@@ -108,9 +108,8 @@ void EliminaGaussiana(Matriz& m) {
             m[i][j] /= m[i][i];
         for (int j = 0; j < m.size(); ++j) {
             if (i == j || Igual(m[j][i], 0)) continue;
-            double ratio = m[j][i] / m[i][i];
-            for (int k = i; k < m[j].size(); ++k)
-                m[j][k] -= m[i][k] * ratio;
+            for (int k = m[j].size()-1; k >= i; --k)
+                m[j][k] -= m[i][k] * m[j][i];
         }
     }
 }

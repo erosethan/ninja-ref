@@ -150,6 +150,10 @@ typedef vector<Vector> Matriz;
 
 // Para eliminacion con fracciones.
 
+Fraccion fabs(const Fraccion& f) {
+	return Fraccion(abs(f.num), f.den);
+}
+
 bool EsCero(const Fraccion& f) {
 	return f.num == 0;
 }

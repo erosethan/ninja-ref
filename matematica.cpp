@@ -88,8 +88,8 @@ Long Euclides(Long a, Long b,
     if (!b) { x = 1, y = 0; return a; }
     Long gcd = Euclides(b, a % b, x, y, mod);
 
-    x = !mod? x - y * (a / b):
-    	(mod + x - y * (a / b)) % mod;
+    x = !mod? x - y * (a / b): (mod +
+    	x - (y * (a / b)) % mod) % mod;
     swap(x, y); return gcd;
 }
 

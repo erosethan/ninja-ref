@@ -1,344 +1,255 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Definiciones iniciales.
-
+typedef int Costo;
 typedef pair<int, int> Arista;
-typedef pair<int, Arista> PesoArista;
 
-const int INF = 1 << 30;
-const int MAXN = 1000;
+const Costo INF = 1 << 30;
 
-int in_degree[MAXN];
-vector<int> grafo[MAXN];
-vector<Arista> grafo_peso[MAXN];
+//
 
-void AgregarArista(int u, int v) {
-    grafo[u].push_back(v);
-    ++in_degree[v];
-}
+struct Grafo {
 
-// Detecta ciclos en una componente conexa bidireccional.
-// Devuelve -1 si no existen ciclos. En caso de existir,
-// los nodos del ciclo se guardan en el arreglo ciclo.
+	int n; bool bi;
+	vector<vector<int>> ady;
+	Grafo(int N, bool B = true)
+		: n(N), bi(B), ady(N) {}
 
-// ESTA CHINGADERA NO FUNCIONA!!!
+	void AgregarArista(int u, int v) {
+		if (bi) ady[v].push_back(u);
+		ady[u].push_back(v);
+	}
 
-int top_ciclo;
-int ciclo[MAXN];
-bool ciclo_activo;
-bool visitado[MAXN];
+	//
 
-int EncontrarCiclo_(int u, int p) {
-    visitado[u] = true;
-    for (int i = 0; i < grafo[u].size(); ++i) {
-        if (grafo[u][i] == p) continue;
-        int v = grafo[u][i], cic;
-        if (visitado[v]) return ciclo[top_ciclo++] = v; 
-        if ((cic = EncontrarCiclo_(v, u)) >= 0) {
-            if (ciclo_activo) ciclo[top_ciclo++] = v;
-            if (cic == u) ciclo_activo = false;
-            return cic;
-        }
-    }
-    return -1;
-}
+	vector<int> ciclo;
+	vector<char> color;
 
-int EncontrarCiclo(int u) {
-    ciclo_activo = true, top_ciclo = 0;
-    return EncontrarCiclo_(u, -1);
-}
+	void DetectarCiclo(int u, int p) {
+		color[u] = ciclo.empty()? 'G': 'N';
+		for (int v : ady[u]) {
+			if (bi && v == p) continue;
+			if (ciclo.empty() && color[v] == 'G')
+				color[v] = 'A', ciclo.push_back(v),
+				color[u] = 'R', ciclo.push_back(u);
+			if (color[v] != 'B') continue;
 
-// Orden topologico de un grafo dirigido aciclico.
-// Los indices de los nodos se asumen de 0 a n - 1.
+			DetectarCiclo(v, u);
+			if (color[u] == 'G' && color[v] == 'R')
+				color[u] = 'R', ciclo.push_back(u);
+		}
+		if (color[u] == 'G') color[u] = 'N';
+	}
 
-vector<int> orden_topo; // Resultado.
+	vector<vector<int>> DetectarCiclos() {
+		vector<vector<int>> ciclos;
+		color = vector<char>(n, 'B');
+		for (int u = 0; u < n; ++u) {
+			if (color[u] != 'B') continue;
+			ciclo.clear(); DetectarCiclo(u, u);
+			reverse(ciclo.begin(), ciclo.end());
+			ciclos.push_back(ciclo);
+		}
+		return ciclos;
+	}
 
-void OrdenTopologico_(int u) {
-    visitado[u] = true;
-    for (int i = 0; i < grafo[u].size(); ++i)
-        if (!visitado[grafo[u][i]])
-            OrdenTopologico_(grafo[u][i]);
-    orden_topo.push_back(u);
-}
+	//
 
-void OrdenTopologico(int n) {
-    orden_topo.clear();
-    fill(visitado, visitado + n, false);
-    for (int i = 0; i < n; ++i)
-        if (!visitado[i]) OrdenTopologico_(i);
-}
+	int tiempo;
+	vector<int> label, low;
+	vector<Arista> puentes;
+	vector<bool> articulacion;
 
-// Obtener componentes fuertemente conexas en un grafo
-// dirigido. Asume los nodos indexados de 0 a n - 1.
+	int PuentesArticulacion(int u, int p) {
+		label[u] = low[u] = ++tiempo;
+		int hijos = 0;
+		for (int v : ady[u]) {
+			if (v == p) continue;
+			if (!label[v]) { ++hijos;
+				PuentesArticulacion(v, u);
+				if (label[u] < low[v])
+					puentes.push_back(Arista(u, v));
+				if (label[u] <= low[v])
+					articulacion[u] = true;
+				low[u] = min(low[u], low[v]);
+			}
+			low[u] = min(low[u], label[v]);
+		}
+		return hijos;
+	}
 
-int numeracion, top_activo;
-int low[MAXN], num[MAXN], activo[MAXN];
-vector< vector<int> > CFCs; // Resultado.
+	void PuentesArticulacion() {
+		low = vector<int>(n);
+		label = vector<int>(n);
+		tiempo = 0, puentes.clear();
+		articulacion = vector<bool>(n);
+		for (int u = 0; u < n; ++u)
+			if (!label[u]) articulacion[u] =
+				PuentesArticulacion(u, u) > 1;
+	}
 
-void ObtenerCFCs_(int u) {
-    activo[top_activo++] = u;
-    low[u] = num[u] = ++numeracion;
-    for (int i = 0; i < grafo[u].size(); ++i) {
-        int v = grafo[u][i];
-        if (!num[v]) ObtenerCFCs_(v);
-        low[u] = min(low[u], low[v]);
-    }
-    if (low[u] == num[u]) {
-        vector<int> CFC;
-        while (activo[top_activo - 1] != u) {
-            CFC.push_back(activo[--top_activo]);
-            low[activo[top_activo]] = INF;
-        }
-        CFC.push_back(activo[--top_activo]);
-        low[u] = INF; CFCs.push_back(CFC);
-    }
-}
+	//
 
-void ObtenerCFCs(int n) {
-    CFCs.clear();
-    numeracion = 0;
-    fill(num, num + n, 0);
-    fill(low, low + n, 0);
-    for (int i = 0; i < n; ++i)
-        if (!num[i]) ObtenerCFCs_(i);
-}
+	vector<vector<int>> scc;
+	int top; vector<int> pila;
 
-// Detecta los puentes y puntos de articulacion en
-// un grafo bidireccional. Indices de 0 a n - 1.
+	void FuertementeConexo(int u) {
+		label[u] = low[u] = ++tiempo;
+		pila[++top] = u;
+		for (int v : ady[u]) {
+			if (!label[v]) FuertementeConexo(v);
+			low[u] = min(low[u], low[v]);
+		}
+		if (label[u] == low[u]) {
+			vector<int> componente;
+			while (pila[top] != u) {
+				componente.push_back(pila[top]);
+				low[pila[top--]] = n + 1;
+			}
+			componente.push_back(pila[top--]);
+			scc.push_back(componente);
+			low[u] = n + 1;
+		}
+	}
 
-bool punto_art[MAXN]; // Resultado.
-vector<int> puentes[MAXN]; // Resultado.
+	void FuertementeConexo() {
+		low = vector<int>(n);
+		label = vector<int>(n);
+		tiempo = 0, scc.clear();
+		top = -1, pila = vector<int>(n);
+		for (int u = 0; u < n; ++u)
+			if (!label[u]) FuertementeConexo(u);
+	}
 
-void PuntosArtPuentes_(int u, int p) {
-    int hijos = 0;
-    low[u] = num[u] = ++numeracion;
-    for (int i = 0; i < grafo[u].size(); ++i) {
-        int v = grafo[u][i];
-        if (v == p) continue;
-        if (!num[v]) {
-            ++hijos;
-            PuntosArtPuentes_(v, u);
-            if (low[v] > num[u]) {
-                puentes[u].push_back(v);
-                puentes[v].push_back(u);
-            }
-            low[u] = min(low[u], low[v]);
-            punto_art[u] |= low[v] >= num[u];
-        } else low[u] = min(low[u], num[v]);
-    }
-    if (p == -1) punto_art[u] = hijos > 1;
-}
+	//
 
-void PuntosArtPuentes(int n) {
-    numeracion = 0;
-    fill(num, num + n, 0);
-    fill(low, low + n, 0);
-    fill(punto_art, punto_art + n, false);
-    for (int i = 0; i < n; ++i)
-        puentes[i].clear();
-    for (int i = 0; i < n; ++i)
-        if (!num[i]) PuntosArtPuentes_(i, -1);
-}
+	vector<bool> vis;
+	vector<int> ordenados;
 
-// Estructura de conjuntos disjuntos.
-// Conjuntos indexados de 0 a n - 1.
+	void OrdenTopologico(int u) {
+	    vis[u] = true;
+	    for (int v : ady[u])
+	        if (!vis[v]) OrdenTopologico(v);
+	    ordenados.push_back(u);
+	}
+
+	void OrdenTopologico() {
+	    ordenados.clear();
+	    vis = vector<bool>(n);
+	    for (int u = 0; u < n; ++u)
+	        if (!vis[u]) OrdenTopologico(u);
+	}
+
+	//
+
+	vector<Costo> BFS(int s) {
+		queue<int> q;
+	    vector<Costo> d(n, INF);
+	    d[s] = 0, q.push(s);
+
+		while (!q.empty()) {
+			int u = q.front(); q.pop();
+			for (int v : ady[u])
+				if (d[u] + 1 < d[v])
+					d[v] = d[u] + 1,
+					q.push(v);
+		}
+		return d;
+	}
+};
+
+//
 
 struct UnionFind {
-    int nconjuntos;
-    vector<int> padre;
-    vector<int> tamano;
 
-    UnionFind(int n) : nconjuntos(n),
-        padre(n), tamano(n, 1) {
-        for(int i = 0; i < n; ++i)
-            padre[i] = i;
+    int n; vector<int> padre, tam;
+
+    UnionFind(int N) : n(N),
+    	tam(N, 1), padre(N) {
+        while (--N) padre[N] = N;
     }
 
-    int Encontrar(int u) {
+    int Raiz(int u) {
         if (padre[u] == u) return u;
-        return padre[u] = Encontrar(padre[u]);
+        return padre[u] = Raiz(padre[u]);
+    }
+
+    bool SonConexos(int u, int v) {
+        return Raiz(u) == Raiz(v);
     }
 
     void Unir(int u, int v) {
-        int Ru = Encontrar(u);
-        int Rv = Encontrar(v);
+        int Ru = Raiz(u);
+        int Rv = Raiz(v);
         if (Ru == Rv) return;
-        --nconjuntos, padre[Ru] = Rv;
-        tamano[Rv] += tamano[Ru];
+        --n, padre[Ru] = Rv;
+        tam[Rv] += tam[Ru];
     }
 
-    bool MismoConjunto(int u, int v) {
-        return Encontrar(u) == Encontrar(v);
-    }
-
-    int TamanoConjunto(int u) {
-        return tamano[Encontrar(u)];
+    int Tamano(int u) {
+    	return tam[Raiz(u)];
     }
 };
 
-// Saber si un grafo es bicoloreable o bipartito.
-// Se asumen los nodos indexados de 0 a n - 1.
+typedef pair<Costo, int> CostoNodo;
+typedef pair<Costo, Arista> Ponderada;
 
-char color[MAXN];
+//
 
-bool Bicolorear_(int u, int c) {
-    color[u] = c;
-    for (int i = 0; i < grafo[u].size(); ++i) {
-        int v = grafo[u][i];
-        if (color[v] == 1 - c) continue;
-        if (color[v] == c) return false;
-        if (!Bicolorear_(v, 1 - c)) return false;
-    }
-    return true;
-}
+struct GrafoPonderado {
 
-bool Bicolorear(int n) {
-    fill(color, color + n, -1);
-    for (int i = 0; i < n; ++i)
-        if (color[i] == -1 &&
-            !Bicolorear_(i, 0))
-            return false;
-    return true;
-}
+	int n; bool bi;
+	vector<vector<CostoNodo>> ady;
+	GrafoPonderado(int N, bool B = true)
+		: n(N), bi(B), ady(N) {}
 
-// Busqueda en amplitud. Nodos con indice del 0 al n - 1.
+	void AgregarArista(int u, int v, Costo c) {
+		if (bi) ady[v].push_back(CostoNodo(c, u));
+		ady[u].push_back(CostoNodo(c, v));
+	}
 
-vector<int> BFS(int o, int n) {
-    vector<int> dist(n, INF);
-    queue<int> q; q.push(o); dist[o] = 0;
-    while (!q.empty()) {
-        int u = q.front(); q.pop();
-        for (int i = 0; i < grafo[u].size(); ++i) {
-            int v = grafo[u][i];
-            if (dist[u] + 1 < dist[v]) {
-                dist[v] = dist[u] + 1;
-                q.push(v);
-            }
-        }
-    }
-    return dist;
-}
+	//
 
-// Algoritmo de Dijkstra. Nodos indexados del 0 al n - 1.
+	vector<Ponderada> Kruskal() {
+		vector<Ponderada> todas;
+		for (int u = 0; u < n; ++u)
+			for (CostoNodo arista : ady[u])
+				todas.push_back(
+					Ponderada(arista.second,
+					Arista(u, arista.first)));
+		sort(todas.begin(), todas.end());
 
-vector<int> Dijkstra(int o, int n) {
-    vector<int> dist(n, INF);
-    priority_queue<Arista, vector<Arista>,
-                   greater<Arista> > pq;
-    pq.push(Arista(0, o)); dist[o] = 0;
-    
-    while (!pq.empty()) {
-        int u = pq.top().second;
-        int p = pq.top().first; pq.pop();
-        if (dist[u] < p) continue;        
-        for (int i = 0; i < grafo_peso[u].size(); ++i) {
-            p = grafo_peso[u][i].second;
-            int v = grafo_peso[u][i].first;
-            if (dist[u] + p < dist[v]) {
-                dist[v] = dist[u] + p;
-                pq.push(Arista(dist[v], v));
-            }
-        }
-    }
-    return dist;
-}
+		vector<Ponderada> mst;
+		UnionFind componentes(n);
+		for (Ponderada arista : todas) {
+			int u = arista.second.first;
+			int v = arista.second.second;
+			if (!componentes.SonConexos(u, v))
+				componentes.Unir(u, v),
+				mst.push_back(arista);
+		}
+		return mst;
+	}
 
-// Dijkstra version lineal. Nodos indexados del 0 al n - 1.
-// ¡PELIGRO! Recuerden cuidar el peso maximo de las aristas.
+	//
 
-const int MAXP = 100 + 1; // Peso maximo + 1
+	vector<Costo> Dijkstra(int s) {
+		vector<Costo> dist(n, INF);
+		priority_queue<CostoNodo> pq;
+		pq.push(CostoNodo(0, s)), dist[s] = 0;
 
-vector<int> DijkstraLineal(int o, int n) {
-    vector<int> dist(n, INF);
-    vector<bool> proc(n, false);
-    vector< queue<int> > q(MAXP);
-    q[0].push(o); dist[o] = 0;
-    int qi = 0, total = 1;
-    
-    while (total) {
-        if (!q[qi].empty()) {
-            int u = q[qi].front(); q[qi].pop(), --total;
-            if (proc[u]) continue; proc[u] = true;
-            for (int i = 0; i < grafo_peso[u].size(); ++i) {
-                int v = grafo_peso[u][i].first;
-                int p = grafo_peso[u][i].second;
-                if (dist[u] + p < dist[v]) {
-                    ++total; q[(qi + p) % MAXP].push(v);
-                    dist[v] = dist[u] + p;
-                }
-            }
-        } else qi = (qi + 1) % MAXP;
-    }
-    return dist;
-}
+		while (!pq.empty()) {
+			Costo p = -pq.top().first;
+			int u = pq.top().second; pq.pop();
+			if (dist[u] < p) continue;
 
-// Algoritmo de Floyd-Warshall. Nodos con indice del 0 al n - 1.
-
-int dist[MAXN][MAXN]; // Matriz de adyacencia
-
-void FloydWarshall(int n) {
-    for (int k = 0; k < n; ++k)
-        for (int i = 0; i < n; ++i)
-            for (int j = 0; j < n; ++j)
-                dist[i][j] = min(dist[i][j],
-                    dist[i][k] + dist[k][j]);
-}
-
-// Arbol de expansion minima por Kruskal. Nodos del 0 al n - 1. 
-
-vector<PesoArista> Kruskal(int n) {
-    vector<PesoArista> aristas;
-    for (int u = 0; u < n; ++u) {
-        for (int i = 0; i < grafo_peso[u].size(); ++i) {
-            int v = grafo_peso[u][i].first;
-            int p = grafo_peso[u][i].second;
-            aristas.push_back(PesoArista(
-                p, Arista(u, v)));
-        }
-    }
-    sort(aristas.begin(), aristas.end());
-    
-    UnionFind uf(n);
-    vector<PesoArista> mst;
-    for (int i = 0; i < aristas.size(); ++i) {
-        int u = aristas[i].second.first;
-        int v = aristas[i].second.second;
-        if (uf.MismoConjunto(u, v)) continue;
-        uf.Unir(u, v); mst.push_back(aristas[i]);
-    }
-    return mst;
-}
-
-// Algoritmo de Bellman-Ford. Nodos indexados de 0 a n - 1.
-
-vector<int> BellmanFord(int o, int n) {
-    vector<int> dist(n, INF); dist[o] = 0;
-    for (int i = 0; i < n; ++i) {
-        for (int u = 0; u < n; ++u) {
-            if (dist[u] == INF) continue;
-            for (int j = 0; j < grafo_peso[u].size(); ++j) {
-                int v = grafo_peso[u][j].first;
-                int p = grafo_peso[u][j].second;
-                dist[v] = min(dist[v], dist[u] + p);
-            }
-        }
-    }
-    bool ciclo_neg = false;
-    for (int u = 0; u < n; ++u) {
-        if (dist[u] == INF) continue;
-        for (int j = 0; j < grafo_peso[u].size(); ++j) {
-            int v = grafo_peso[u][j].first;
-            int p = grafo_peso[u][j].second;
-            ciclo_neg |= dist[u] + p < dist[v];
-        }
-    }
-    if (!ciclo_neg) return dist;
-    for (int u = 0; u < n; ++u)
-        if (dist[u] < INF) dist[u] = -INF;
-    return dist;
-}
-
-int main() {
-    return 0;
-}
+			for (CostoNodo arista : ady[u]) {
+				int v = arista.second;
+				p = dist[u] + arista.first;
+				if (p < dist[v]) dist[v] = p,
+					pq.push(CostoNodo(p, v));
+			}
+		}
+		return dist;
+	}
+};

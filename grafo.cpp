@@ -6,7 +6,10 @@ typedef pair<int, int> Arista;
 
 const Costo INF = 1 << 30;
 
-//
+// Grafos no ponderados.
+// Nodos indexados de 0 a n - 1.
+// Grafo(n,  true) -> Bidireccional.
+// Grafo(n, false) -> Dirigido.
 
 struct Grafo {
 
@@ -20,7 +23,11 @@ struct Grafo {
         ady[u].push_back(v);
     }
 
-    //
+    // Deteccion de ciclos en un grafo.
+    // Llamar a DetectarCiclos() devuelve un
+    // vector de vectores; cada vector interno es
+    // una lista que representa un ciclo del grafo.
+    // NOTA: Solo detecta un ciclo por componente.
 
     vector<int> ciclo;
     vector<char> color;
@@ -53,12 +60,16 @@ struct Grafo {
         return ciclos;
     }
 
-    //
+    // Deteccion de puentes y puntos de articulacion
+    // en un grafo bidireccional. Los puentes quedan
+    // guardados en un vector de aristas. Los puntos
+    // de articulacion son marcados como true o
+    // false en un vector de booleanos.
 
     int tiempo;
     vector<int> label, low;
-    vector<Arista> puentes;
-    vector<bool> articulacion;
+    vector<Arista> puentes;    // <- Resultado
+    vector<bool> articulacion; // <- Resultado
 
     int PuentesArticulacion(int u, int p) {
         label[u] = low[u] = ++tiempo;
@@ -88,9 +99,13 @@ struct Grafo {
                 PuentesArticulacion(u, u) > 1;
     }
 
-    //
+    // Deteccion de componentes fuertemente conexas
+    // en un grafo dirigido. Las componentes quedan
+    // guardadas en un vector de vectores, donde
+    // cada vector interno contiene los nodos
+    // de una componente fuertemente conexa.
 
-    vector<vector<int>> scc;
+    vector<vector<int>> scc; // <- Resultado
     int top; vector<int> pila;
 
     void FuertementeConexo(int u) {
@@ -121,7 +136,9 @@ struct Grafo {
             if (!label[u]) FuertementeConexo(u);
     }
 
-    //
+    // Obtiene el orden topologico de los nodos
+    // de un grafo dirigido. Orden ascendente
+    // respecto al numero de dependencias.
 
     vector<bool> vis;
     vector<int> ordenados;
@@ -140,12 +157,15 @@ struct Grafo {
             if (!vis[u]) OrdenTopologico(u);
     }
 
-    //
+    // Busqueda en amplitud desde el nodo s.
+    // Devuelve el vector de distancias a todos
+    // los nodos desde s. Un valor INF indica que
+    // no es posible ir de s al respectivo nodo.
 
     vector<Costo> BFS(int s) {
         queue<int> q;
         vector<Costo> d(n, INF);
-        d[s] = 0, q.push(s);
+        q.push(s), d[s] = 0;
 
         while (!q.empty()) {
             int u = q.front(); q.pop();
@@ -158,7 +178,7 @@ struct Grafo {
     }
 };
 
-//
+// Conjuntos disjuntos con Union-Find.
 
 struct UnionFind {
 
@@ -194,7 +214,10 @@ struct UnionFind {
 typedef pair<Costo, int> CostoNodo;
 typedef pair<Costo, Arista> Ponderada;
 
-//
+// Grafos con ponderacion.
+// Nodos indexados de 0 a n - 1.
+// GrafoPonderado(n,  true) -> Bidireccional.
+// GrafoPonderado(n, false) -> Dirigido.
 
 struct GrafoPonderado {
 
@@ -208,7 +231,11 @@ struct GrafoPonderado {
         ady[u].push_back(CostoNodo(c, v));
     }
 
-    //
+    // Obtiene el arbol de expansion minima de un
+    // grafo bidireccional. Para obtener el arbol
+    // de expansion maxima descomentar el reverse.
+    // En caso de tener varias componentes conexas,
+    // obtiene el bosque de expansion minima.
 
     vector<Ponderada> Kruskal() {
         vector<Ponderada> todas;
@@ -218,6 +245,7 @@ struct GrafoPonderado {
                     Ponderada(arista.second,
                     Arista(u, arista.first)));
         sort(todas.begin(), todas.end());
+        // reverse(todas.begin(), todas.end());
 
         vector<Ponderada> mst;
         UnionFind componentes(n);
@@ -231,7 +259,10 @@ struct GrafoPonderado {
         return mst;
     }
 
-    //
+    // Algoritmo de dijkstra desde el nodo s.
+    // Devuelve el vector de distancias a todos
+    // los nodos desde s. Un valor INF indica que
+    // no es posible ir de s al respectivo nodo.
 
     vector<Costo> Dijkstra(int s) {
         vector<Costo> dist(n, INF);
@@ -253,19 +284,24 @@ struct GrafoPonderado {
         return dist;
     }
 
-    //
+    // Algoritmo de Bellman-Ford optimizado, desde
+    // el nodo s. Devuelve un booleano indicando si
+    // existe un ciclo negativo en el grafo.
+    // Obtiene el vector de distancias a todos.
 
-    /*bool BellmanFerrari(int s) {
-        queue<int> q; q.push(s);
+    vector<Costo> dist; // <- Resultado
+
+    bool BellmanFerrari(int s) {
+        queue<int> q; 
         vector<bool> en_cola(n);
-        vector<int> procesos(n);
-        vector<Costo> dist(n, INF);
-        en_cola[s] = true; dist[s] = 0;
+        vector<int> procesado(n);
+        dist = vector<Costo>(n, INF);
+        q.push(s), dist[s] = 0;
 
         while (!q.empty()) {
-            int u = q.top(); q.pop();
-            en_cola[u] = false;
-            if (++procesos[u] == n) break;
+            int u = q.front();
+            q.pop(), en_cola[u] = false;
+            if (++procesado[u] == n) return true;
             for (CostoNodo arista : ady[u]) {
                 int v = arista.second;
                 Costo p = arista.first;
@@ -276,64 +312,10 @@ struct GrafoPonderado {
                 }
             }
         }
-        return dist;
-    }*/
+        return false;
+    }
 };
 
-/*
-int logs[MAXN];
-int nivel[MAXN];
-int padre[MAXN][LOGN];
-
-void CalcularPadres(int n) {
-    for (int i = 2; i < n; ++i)
-        logs[i] = logs[i >> 1] + 1;
-
-    for (int u = 0; u < n; ++u) {
-        maximo[u][0] = peso[u];
-        padre[u][0] = paps[u];
-    }
-    padre[raiz][0] = raiz;
-
-    for (int i = 1; i < LOGN; ++i) {
-        for (int u = 0; u < n; ++u) {
-            padre[u][i] = padre[padre[u][i - 1]][i - 1];
-            maximo[u][i] = max(maximo[u][i - 1],
-                maximo[padre[u][i - 1]][i - 1]);
-        }
-    }
-}
-
-int LCA(int u, int v) {
-    if (nivel[v] > nivel[u]) swap(u, v);
-
-    int h = nivel[u] - nivel[v];
-    for (int i = 0; 1 << i <= h; ++i)
-        if (h & 1 << i) u = padre[u][i];
-    if (u == v) return u;
-
-    for (int i = LOGN - 1; i >= 0; --i)
-        if (padre[u][i] != padre[v][i])
-            u = padre[u][i], v = padre[v][i];
-    return padre[u][0];
-}
-*/
-
 int main() {
-    int n, m, u, v;
-    scanf("%d%d", &n, &m);
-
-    Grafo G(n, false);
-    for (int i = 0; i < m; ++i) {
-        scanf("%d%d", &u, &v);
-        G.AgregarArista(u, v);
-    }
-
-    G.FuertementeConexo();
-    for (vector<int> comp : G.scc) {
-        for (int nodo : comp) 
-            printf("%d ", nodo);
-        printf("\n");
-    }
     return 0;
 }

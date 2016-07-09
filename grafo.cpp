@@ -55,7 +55,7 @@ struct Grafo {
             if (color[u] != 'B') continue;
             ciclo.clear(); DetectarCiclo(u, u);
             reverse(ciclo.begin(), ciclo.end());
-            ciclos.push_back(ciclo);
+            if( ciclo.size() > 0 ) ciclos.push_back(ciclo);
         }
         return ciclos;
     }

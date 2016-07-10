@@ -242,8 +242,8 @@ struct GrafoPonderado {
         for (int u = 0; u < n; ++u)
             for (CostoNodo arista : ady[u])
                 todas.push_back(
-                    Ponderada(arista.second,
-                    Arista(u, arista.first)));
+                    Ponderada(arista.first,
+                    Arista(u, arista.second)));
         sort(todas.begin(), todas.end());
         // reverse(todas.begin(), todas.end());
 

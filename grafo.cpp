@@ -278,7 +278,7 @@ struct GrafoPonderado {
                 int v = arista.second;
                 p = dist[u] + arista.first;
                 if (p < dist[v]) dist[v] = p,
-                    pq.push(CostoNodo(p, v));
+                    pq.push(CostoNodo(-p, v));
             }
         }
         return dist;

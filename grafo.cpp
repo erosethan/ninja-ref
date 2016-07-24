@@ -55,7 +55,8 @@ struct Grafo {
             if (color[u] != 'B') continue;
             ciclo.clear(); DetectarCiclo(u, u);
             reverse(ciclo.begin(), ciclo.end());
-            if( ciclo.size() > 0 ) ciclos.push_back(ciclo);
+            if (ciclo.size())
+            	ciclos.push_back(ciclo);
         }
         return ciclos;
     }
@@ -286,7 +287,7 @@ struct GrafoPonderado {
 
     // Algoritmo de Bellman-Ford optimizado, desde
     // el nodo s. Devuelve un booleano indicando si
-    // existe un ciclo negativo en el grafo.
+    // existe un ciclo negativo en un digrafo.
     // Obtiene el vector de distancias a todos.
 
     vector<Costo> dist; // <- Resultado

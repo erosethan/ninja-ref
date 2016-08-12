@@ -23,7 +23,7 @@ struct Grafo {
         ady[u].push_back(v);
     }
 
-    // Deteccion de ciclos en un grafo.
+    // Detecta ciclos en un grafo o multigrafo.
     // Llamar a DetectarCiclos() devuelve un
     // vector de vectores; cada vector interno es
     // una lista que representa un ciclo del grafo.
@@ -33,12 +33,15 @@ struct Grafo {
     vector<char> color;
 
     void DetectarCiclo(int u, int p) {
+        int retorno = bi? 0: 1;
         color[u] = ciclo.empty()? 'G': 'N';
         for (int v : ady[u]) {
-            if (bi && v == p) continue;
-            if (ciclo.empty() && color[v] == 'G')
-                color[v] = 'A', ciclo.push_back(v),
-                color[u] = 'R', ciclo.push_back(u);
+            if (v == p && !retorno++) continue;
+            if (ciclo.empty() && color[v] == 'G') {
+                color[v] = 'A', ciclo.push_back(v);
+                if (u != v) color[u] = 'R',
+                    ciclo.push_back(u);
+            }
             if (color[v] != 'B') continue;
 
             DetectarCiclo(v, u);
@@ -53,19 +56,19 @@ struct Grafo {
         color = vector<char>(n, 'B');
         for (int u = 0; u < n; ++u) {
             if (color[u] != 'B') continue;
-            ciclo.clear(); DetectarCiclo(u, u);
+            ciclo.clear(); DetectarCiclo(u, n);
             reverse(ciclo.begin(), ciclo.end());
-            if (ciclo.size())
-            	ciclos.push_back(ciclo);
+            if (!ciclo.empty())
+                ciclos.push_back(ciclo);
         }
         return ciclos;
     }
 
     // Deteccion de puentes y puntos de articulacion
-    // en un grafo bidireccional. Los puentes quedan
-    // guardados en un vector de aristas. Los puntos
-    // de articulacion son marcados como true o
-    // false en un vector de booleanos.
+    // en un grafo o multigrafo bidireccional. Los puentes
+    // quedan guardados en un vector de aristas. Lo puntos
+    // de articulacion son marcados como true o false
+    // respectivamente en un vector de booleanos.
 
     int tiempo;
     vector<int> label, low;
@@ -74,15 +77,16 @@ struct Grafo {
 
     int PuentesArticulacion(int u, int p) {
         label[u] = low[u] = ++tiempo;
-        int hijos = 0;
+
+        int hijos = 0, retorno = 0;
         for (int v : ady[u]) {
-            if (v == p) continue;
+            if (v == p && !retorno++) continue;
             if (!label[v]) { ++hijos;
                 PuentesArticulacion(v, u);
-                if (label[u] < low[v])
-                    puentes.push_back(Arista(u, v));
                 if (label[u] <= low[v])
                     articulacion[u] = true;
+                if (label[u] <  low[v])
+                    puentes.push_back(Arista(u, v));
                 low[u] = min(low[u], low[v]);
             }
             low[u] = min(low[u], label[v]);
@@ -97,7 +101,7 @@ struct Grafo {
         articulacion = vector<bool>(n);
         for (int u = 0; u < n; ++u)
             if (!label[u]) articulacion[u] =
-                PuentesArticulacion(u, u) > 1;
+                PuentesArticulacion(u, n) > 1;
     }
 
     // Deteccion de componentes fuertemente conexas
@@ -111,6 +115,7 @@ struct Grafo {
 
     void FuertementeConexo(int u) {
         label[u] = low[u] = ++tiempo;
+
         pila[++top] = u;
         for (int v : ady[u]) {
             if (!label[v]) FuertementeConexo(v);
@@ -137,6 +142,7 @@ struct Grafo {
             if (!label[u]) FuertementeConexo(u);
     }
 
+    // REVISIT
     // Obtiene el orden topologico de los nodos
     // de un grafo dirigido. Orden ascendente
     // respecto al numero de dependencias.

@@ -545,6 +545,85 @@ int IntersecCirculoCirculo(const Circulo& c, const Circulo& d) {
     return (dist > c.r + d.r)? 0: 1;
 }
 
+// Obtiene tangentes exteriores (las que NO se cruzan) entre dos círculos.
+int TangenteExtCirculoCirculo(const Circulo& a, const Circulo& b, Linea &s, Linea &t) {
+	// Circulos identicos. Tangentes infinitas (o ninguna a discrecion)
+	if (Igual(a.r, b.r) && a.c == b.c) {
+		return 0; // O etiqueta de caso especial.
+	}
+	// Uno es círculo interior del otro. Comparten una tangente.
+	// EL CALCULO PUEDE COPIARSE A TangenteInt SI SE REQUIERE.
+	Punto u;
+	bool unico = false;
+	if (b.r < a.r && Igual(Distancia(a.c, b.c) + b.r, a.r)) {
+		u = Trasladar(Opuesto(a.c), Escalar(Trasladar(a.c, b.c), a.r / Distancia(a.c, b.c)));
+		unico = true;
+	}
+	if (a.r < b.r && Igual(Distancia(a.c, b.c) + a.r, b.r)) {
+		u = Trasladar(Opuesto(b.c), Escalar(Trasladar(b.c, a.c), b.r / Distancia(a.c, b.c)));
+		unico = true;
+	}
+	if (unico) {
+		s = t = PerpendicularEnPunto(Linea(a.c, b.c), u); // Recta de tangencia; un punto es referencia.
+		//s = t = Linea(u, u); // Punto de tangencia.
+		return 1;
+	}
+	// Circulo en circulo. No hay tangentes.
+	if (CirculoEnCirculo(a, b) || CirculoEnCirculo(b, a)) {
+		return 0;
+	}
+	// Calcular las 2 rectas tangentes.
+	Linea proy;
+	Punto v;
+	if (Igual(a.r, b.r)) {
+		proy = Linea(a.c, a.c);
+		Linea perp = PerpendicularEnPunto(Linea(a.c, b.c), a.c);
+		u = Escalar(Trasladar(perp.q, perp.p), b.r / Distancia(perp.p, perp.q)); 
+		v = Opuesto(u);
+	} else {
+		Circulo c(a.c, abs(a.r - b.r));
+		proy = ProyTangentes(b.c, c);
+		u = Escalar(Trasladar(a.c, proy.p), b.r / (a.r - b.r));
+		v = Escalar(Trasladar(a.c, proy.q), b.r / (a.r - b.r));
+	}
+	s = Linea(Trasladar(Opuesto(proy.p), u), Trasladar(Opuesto(b.c), u));
+	t = Linea(Trasladar(Opuesto(proy.q), v), Trasladar(Opuesto(b.c), v));
+	return 2;
+}
+
+// Obtiene tangentes interiores (las que SI se cruzan) entre dos círculos.
+int TangenteIntCirculoCirculo(const Circulo& a, const Circulo& b, Linea &s, Linea &t) {
+	// Circulos identicos. Tangentes infinitas (o ninguna a discrecion)
+	if (Igual(a.r, b.r) && a.c == b.c) {
+		return 0; // O etiqueta de caso especial.
+	}
+	// Uno es círculo interior del otro. Comparten una tangente.
+	// CALCULO HECHO EN TangenteInt. Copiar de este si se requiere.
+	Punto u;
+	// Circulos tangentes. Obtener recta tangente unica.
+	if (Igual(Distancia(a.c, b.c), a.r + b.r)) {
+		u = Trasladar(Opuesto(b.c), Escalar(Trasladar(b.c, a.c), b.r / Distancia(a.c, b.c)));
+		s = t = PerpendicularEnPunto(Linea(a.c, b.c), u); // Recta de tangencia.
+		//s = t = Linea(u, u); // Punto de tangencia.
+		return 1;
+	}
+	// Circulos se traslapan. no hay tangentes.
+	if (!(a.r + b.r < Distancia(a.c, b.c))) {
+		return 0;
+	}
+	// Obtener 2 rectas tangentes.
+	Linea proy;
+	Punto v;
+	Circulo c(a.c, a.r + b.r);
+	proy = ProyTangentes(b.c, c);
+	u = Escalar(Trasladar(a.c, proy.p), b.r / (a.r + b.r));
+	v = Escalar(Trasladar(a.c, proy.q), b.r / (a.r + b.r));
+	s = Linea(Trasladar(Opuesto(proy.p), Opuesto(u)), Trasladar(Opuesto(b.c), Opuesto(u)));
+	t = Linea(Trasladar(Opuesto(proy.q), Opuesto(v)), Trasladar(Opuesto(b.c), Opuesto(v)));
+	return 2;
+}
+
+
 int main() {
     return 0;
 }

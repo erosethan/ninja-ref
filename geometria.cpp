@@ -623,6 +623,37 @@ int TangenteIntCirculoCirculo(const Circulo& a, const Circulo& b, Linea &s, Line
 	return 2;
 }
 
+vector< Punto > PuntosInterseccionCirculos( const Circulo& c, const Circulo& d ){
+	vector<Punto> ret;
+	double angulo, dist, X, Y;
+	Circulo C = Circulo( Punto( 0, 0 ), c.r );
+	Circulo D = Circulo( Trasladar( c.c, d.c ), d.r );
+	
+	if( ManoDerecha( Punto(0, 0), Punto( 1, 0 ), D.c ) == 1 )
+		angulo = M_2PI - Angulo( Punto( 1, 0 ), D.c );
+	else
+		angulo = Angulo( Punto( 1, 0 ), D.c );
+	
+	D.c = Rotar( D.c, angulo );
+	dist = Distancia( D.c, C.c );
+
+	if( Igual( dist, C.r + D.r ) ){
+		ret.push_back( Punto( C.r, 0 ) );
+		ret[0] = Rotar( ret[0], M_2PI - angulo );
+		ret[0] = Trasladar( Punto( -c.c.x, -c.c.y ), ret[0] );
+	}
+	else if( dist < C.r + D.r ){
+		X = (dist*dist - D.r*D.r + C.r*C.r) / (2*dist);
+		Y = sqrt( C.r*C.r - X*X );
+		ret.push_back( Punto( X, Y ) );
+		ret.push_back( Punto( X, -Y ) );
+		for( int i = 0; i < 2; i++ ){
+			ret[i] = Rotar( ret[i], M_2PI - angulo );
+			ret[i] = Trasladar( Punto( -c.c.x, -c.c.y ), ret[i] );
+   		}
+	}
+	return ret;
+}
 
 int main() {
     return 0;

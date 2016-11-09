@@ -624,25 +624,27 @@ int TangenteIntCirculoCirculo(const Circulo& a, const Circulo& b, Linea &s, Line
 }
 
 vector< Punto > PuntosInterseccionCirculos( const Circulo& c, const Circulo& d ){
+	int mano;
 	vector<Punto> ret;
-	double angulo, dist, X, Y;
+	double angulo = 0.0, dist, X, Y;
 	Circulo C = Circulo( Punto( 0, 0 ), c.r );
 	Circulo D = Circulo( Trasladar( c.c, d.c ), d.r );
+	mano = ManoDerecha( Punto(0, 0), Punto( 1, 0 ), D.c );
 	
-	if( ManoDerecha( Punto(0, 0), Punto( 1, 0 ), D.c ) == 1 )
+	if( mano == 1 )
 		angulo = M_2PI - Angulo( Punto( 1, 0 ), D.c );
-	else
+	else if( mano == -1 )
 		angulo = Angulo( Punto( 1, 0 ), D.c );
 	
 	D.c = Rotar( D.c, angulo );
 	dist = Distancia( D.c, C.c );
-
+	
 	if( Igual( dist, C.r + D.r ) ){
 		ret.push_back( Punto( C.r, 0 ) );
 		ret[0] = Rotar( ret[0], M_2PI - angulo );
 		ret[0] = Trasladar( Punto( -c.c.x, -c.c.y ), ret[0] );
 	}
-	else if( dist < C.r + D.r ){
+	else if( dist < (C.r + D.r) && dist > fabs(C.r - D.r)) {
 		X = (dist*dist - D.r*D.r + C.r*C.r) / (2*dist);
 		Y = sqrt( C.r*C.r - X*X );
 		ret.push_back( Punto( X, Y ) );
